@@ -27,4 +27,23 @@ export class SettlementController {
       longitude,
     );
   }
+
+  @Get('/bounds')
+  findInBounds(
+    @Query('southWestLat') southWestLat: string,
+    @Query('southWestLng') southWestLng: string,
+    @Query('northEastLat') northEastLat: string,
+    @Query('northEastLng') northEastLng: string,
+  ) {
+    const southWest = {
+      lat: parseFloat(southWestLat),
+      lng: parseFloat(southWestLng),
+    };
+    const northEast = {
+      lat: parseFloat(northEastLat),
+      lng: parseFloat(northEastLng),
+    };
+
+    return this.settlementService.findSettlementsInBounds(southWest, northEast);
+  }
 }

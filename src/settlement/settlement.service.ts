@@ -45,4 +45,22 @@ export class SettlementService {
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
   }
+
+  async findSettlementsInBounds(
+    southWest: { lat: number; lng: number },
+    northEast: { lat: number; lng: number },
+  ): Promise<SettlementEntity[]> {
+    return this.settlementRepository
+      .createQueryBuilder('settlement')
+      .where(
+        'settlement.lat >= :southLat AND settlement.lat <= :northLat AND settlement.lng >= :westLng AND settlement.lng <= :eastLng',
+        {
+          southLat: southWest.lat,
+          northLat: northEast.lat,
+          westLng: southWest.lng,
+          eastLng: northEast.lng,
+        },
+      )
+      .getMany();
+  }
 }
