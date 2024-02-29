@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:5173',
+    origin: ['https://localhost', 'http://localhost:5173'],
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
