@@ -17,13 +17,18 @@ for (let i = 0; i < 100; i++) {
   const id = `gen_${i}`;
   const name = `Settlement_${i}`;
 
-  settlements.push({ id, name, lat, lng });
+  // Generate the POINT geometry as text
+  const location = `POINT(${lng} ${lat})`; // Note: In PostGIS, the point is specified as (longitude latitude)
+
+  settlements.push({ id, name, location }); // Changed lat, lng to location
 }
 
 const sqlInserts = settlements
-  .map((s) => `('${s.id}', '${s.name}', ${s.lat}, ${s.lng})`)
+  .map(
+    (s) => `('${s.id}', '${s.name}', ST_GeomFromText('${s.location}', 4326))`,
+  ) // Use ST_GeomFromText to convert text to geometry
   .join(',\n');
 
 console.log(
-  `INSERT INTO settlement (id, name, lat, lng) VALUES\n${sqlInserts};`,
+  `INSERT INTO settlement (id, name, location) VALUES\n${sqlInserts};`, // Changed lat, lng to location
 );

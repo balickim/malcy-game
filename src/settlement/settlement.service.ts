@@ -17,50 +17,31 @@ export class SettlementService {
     return this.settlementRepository.save(newSettlement);
   }
 
-  // TODO: Replace this method with a PostGIS query for accurate geospatial queries
-  async findSettlementsWithinRadius(
-    lat: number,
-    lng: number,
-  ): Promise<SettlementEntity[]> {
-    // This is a simplified calculation and might not be accurate for large distances or close to the poles.
-    const earthRadiusInKm = 6371;
-    const radiusInKm = 1; // search within 1 km radius
-
-    const settlements = await this.settlementRepository.find();
-    return settlements.filter((settlement) => {
-      const dLat = this.deg2rad(settlement.lat - lat);
-      const dLng = this.deg2rad(settlement.lng - lng);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(this.deg2rad(lat)) *
-          Math.cos(this.deg2rad(settlement.lat)) *
-          Math.sin(dLng / 2) *
-          Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = earthRadiusInKm * c; // Distance in km
-      return distance <= radiusInKm;
-    });
-  }
-
-  private deg2rad(deg: number): number {
-    return deg * (Math.PI / 180);
-  }
-
   async findSettlementsInBounds(
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
   ): Promise<SettlementEntity[]> {
-    return this.settlementRepository
+    // Directly using ST_MakeEnvelope to create the bounding box geometry
+    const query = this.settlementRepository
       .createQueryBuilder('settlement')
+      // Using the && operator to check if the location intersects with the bounding box
+      // Notice the direct injection of ST_MakeEnvelope into the query string
+      .select([
+        'settlement.id AS id',
+        'settlement.name AS name',
+        'ST_X(settlement.location) AS lng',
+        'ST_Y(settlement.location) AS lat',
+      ])
       .where(
-        'settlement.lat >= :southLat AND settlement.lat <= :northLat AND settlement.lng >= :westLng AND settlement.lng <= :eastLng',
+        `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
         {
-          southLat: southWest.lat,
-          northLat: northEast.lat,
-          westLng: southWest.lng,
-          eastLng: northEast.lng,
+          southWestLng: southWest.lng,
+          southWestLat: southWest.lat,
+          northEastLng: northEast.lng,
+          northEastLat: northEast.lat,
         },
-      )
-      .getMany();
+      );
+
+    return query.getRawMany();
   }
 }

@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppService } from '~/app.service';
@@ -8,6 +9,7 @@ import { UserEntity } from '~/user/entities/user.entity';
 import { UserModule } from '~/user/user.module';
 import { SettlementEntity } from '~/settlement/entities/settlement.entity';
 import { SettlementModule } from '~/settlement/settlement.module';
+import { checkPostGISExtension } from '~/common/utils/postgis';
 
 @Module({
   imports: [
@@ -37,4 +39,15 @@ import { SettlementModule } from '~/settlement/settlement.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly dataSource: DataSource) {}
+
+  async onModuleInit() {
+    const hasPostGIS = await checkPostGISExtension(this.dataSource);
+    if (!hasPostGIS) {
+      console.warn('PostGIS extension is not available in the database.');
+    } else {
+      console.log('PostGIS extension is available.');
+    }
+  }
+}

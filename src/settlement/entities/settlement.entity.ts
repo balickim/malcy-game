@@ -9,11 +9,12 @@ export class SettlementEntity {
   @Column()
   name: string;
 
-  @Column({ type: 'float' })
-  lat: number;
-
-  @Column({ type: 'float' })
-  lng: number;
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+  })
+  location: string;
 
   @BeforeInsert()
   generateId() {
