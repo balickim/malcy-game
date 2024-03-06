@@ -5,10 +5,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppService } from '~/app.service';
 import { AppController } from '~/app.controller';
-import { UserEntity } from '~/user/entities/user.entity';
-import { UserModule } from '~/user/user.module';
-import { SettlementEntity } from '~/settlement/entities/settlement.entity';
-import { SettlementModule } from '~/settlement/settlement.module';
+import { UserEntity } from '~/models/user/entities/user.entity';
+import { UserModule } from '~/models/user/user.module';
+import { SettlementEntity } from '~/models/settlement/entities/settlement.entity';
+import { SettlementModule } from '~/models/settlement/settlement.module';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 
 @Module({
