@@ -30,5 +30,5 @@ const sqlInserts = settlements
   .join(',\n');
 
 console.log(
-  `INSERT INTO settlement (id, name, location) VALUES\n${sqlInserts};`, // Changed lat, lng to location
+  `INSERT INTO settlements (id, name, location) VALUES\n${sqlInserts};`, // Changed lat, lng to location
 );

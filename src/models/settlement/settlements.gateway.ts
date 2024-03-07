@@ -15,7 +15,7 @@ import { Observable } from 'rxjs';
     credentials: true,
   },
 })
-export class SettlementGateway {
+export class SettlementsGateway {
   @WebSocketServer()
   server: Server;
 

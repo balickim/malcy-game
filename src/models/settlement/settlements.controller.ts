@@ -1,9 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { SettlementService } from './settlement.service';
+import { SettlementsService } from './settlements.service';
 
-@Controller('settlement')
-export class SettlementController {
-  constructor(private readonly settlementService: SettlementService) {}
+@Controller('settlements')
+export class SettlementsController {
+  constructor(private readonly settlementsService: SettlementsService) {}
 
   @Get('/bounds')
   async findInBounds(
@@ -21,7 +21,7 @@ export class SettlementController {
       lng: parseFloat(northEastLng),
     };
 
-    return await this.settlementService.findSettlementsInBounds(
+    return await this.settlementsService.findSettlementsInBounds(
       southWest,
       northEast,
     );

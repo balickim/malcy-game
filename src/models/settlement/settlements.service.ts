@@ -2,29 +2,30 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { SettlementEntity } from '~/models/settlement/entities/settlement.entity';
-import { SettlementDto } from '~/models/settlement/dtos/settlement.dto';
+import { SettlementsEntity } from '~/models/settlement/entities/settlements.entity';
+import { SettlementsDto } from '~/models/settlement/dtos/settlements.dto';
 
 @Injectable()
-export class SettlementService {
+export class SettlementsService {
   constructor(
-    @InjectRepository(SettlementEntity)
-    private settlementRepository: Repository<SettlementEntity>,
+    @InjectRepository(SettlementsEntity)
+    private settlementsEntityRepository: Repository<SettlementsEntity>,
   ) {}
 
   async createSettlement(
-    settlementData: Partial<SettlementEntity>,
-  ): Promise<SettlementEntity> {
-    const newSettlement = this.settlementRepository.create(settlementData);
-    return this.settlementRepository.save(newSettlement);
+    settlementData: Partial<SettlementsEntity>,
+  ): Promise<SettlementsEntity> {
+    const newSettlement =
+      this.settlementsEntityRepository.create(settlementData);
+    return this.settlementsEntityRepository.save(newSettlement);
   }
 
   async findSettlementsInBounds(
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
-  ): Promise<SettlementDto[]> {
+  ): Promise<SettlementsDto[]> {
     // Directly using ST_MakeEnvelope to create the bounding box geometry
-    const query = this.settlementRepository
+    const query = this.settlementsEntityRepository
       .createQueryBuilder('settlement')
       // Using the && operator to check if the location intersects with the bounding box
       // Notice the direct injection of ST_MakeEnvelope into the query string

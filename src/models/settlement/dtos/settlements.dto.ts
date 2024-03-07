@@ -1,4 +1,4 @@
-export class SettlementDto {
+export class SettlementsDto {
   id: string;
   name: string;
   lng: number;

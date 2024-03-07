@@ -1,8 +1,8 @@
 import { Entity, PrimaryColumn, Column, BeforeInsert } from 'typeorm';
 import { nanoid } from 'nanoid';
 
-@Entity({ name: 'settlement' })
-export class SettlementEntity {
+@Entity({ name: 'settlements' })
+export class SettlementsEntity {
   @PrimaryColumn()
   id: string;
 

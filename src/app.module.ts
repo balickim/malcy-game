@@ -5,10 +5,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppService } from '~/app.service';
 import { AppController } from '~/app.controller';
-import { UsersEntity } from '~/models/user/entities/usersEntity';
+import { UsersEntity } from '~/models/user/entities/users.entity';
 import { UsersModule } from '~/models/user/users.module';
-import { SettlementEntity } from '~/models/settlement/entities/settlement.entity';
-import { SettlementModule } from '~/models/settlement/settlement.module';
+import { SettlementsEntity } from '~/models/settlement/entities/settlements.entity';
+import { SettlementsModule } from '~/models/settlement/settlements.module';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 
 @Module({
@@ -18,7 +18,7 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, SettlementModule, UsersModule],
+      imports: [ConfigModule, SettlementsModule, UsersModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
@@ -30,11 +30,11 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
         migrations: [],
         migrationsTableName: 'typeorm_migrations',
         synchronize: configService.get('DB_SYNCHRONIZE', false),
-        entities: [UsersEntity, SettlementEntity],
+        entities: [UsersEntity, SettlementsEntity],
       }),
     }),
     UsersModule,
-    SettlementModule,
+    SettlementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
