@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { SettlementEntity } from '~/models/settlement/entities/settlement.entity';
+import { SettlementDto } from '~/models/settlement/dtos/settlement.dto';
 
 @Injectable()
 export class SettlementService {
@@ -20,7 +22,7 @@ export class SettlementService {
   async findSettlementsInBounds(
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
-  ): Promise<SettlementEntity[]> {
+  ): Promise<SettlementDto[]> {
     // Directly using ST_MakeEnvelope to create the bounding box geometry
     const query = this.settlementRepository
       .createQueryBuilder('settlement')
