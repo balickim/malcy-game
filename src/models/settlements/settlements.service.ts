@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { SettlementsEntity } from '~/models/settlement/entities/settlements.entity';
-import { SettlementsDto } from '~/models/settlement/dtos/settlements.dto';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 
 @Injectable()
 export class SettlementsService {

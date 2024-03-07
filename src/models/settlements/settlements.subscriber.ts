@@ -5,8 +5,8 @@ import {
   InsertEvent,
 } from 'typeorm';
 
-import { SettlementsEntity } from '~/models/settlement/entities/settlements.entity';
-import { SettlementsGateway } from '~/models/settlement/settlements.gateway';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { SettlementsGateway } from '~/models/settlements/settlements.gateway';
 
 @EventSubscriber()
 export class SettlementsSubscriber
