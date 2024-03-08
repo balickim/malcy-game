@@ -14,6 +14,14 @@ export class UsersService {
     return this.usersRepository.findOneBy({ email });
   }
 
+  findOneWithPasswordByEmail(email: string): Promise<UsersEntity | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.email = :email', { email })
+      .addSelect('user.password')
+      .getOne();
+  }
+
   findOneById(id: string): Promise<UsersEntity | null> {
     return this.usersRepository.findOneBy({ id });
   }
