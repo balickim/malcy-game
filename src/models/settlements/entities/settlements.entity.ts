@@ -1,4 +1,12 @@
-import { Entity, PrimaryColumn, Column, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  BeforeInsert,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { nanoid } from 'nanoid';
 
 @Entity({ name: 'settlements' })
@@ -15,6 +23,15 @@ export class SettlementsEntity {
     srid: 4326,
   })
   location: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   @BeforeInsert()
   generateId() {

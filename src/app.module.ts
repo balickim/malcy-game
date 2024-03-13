@@ -5,17 +5,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppService } from '~/app.service';
 import { AppController } from '~/app.controller';
-import { UsersEntity } from '~/models/user/entities/users.entity';
-import { UsersModule } from '~/models/user/users.module';
-import { SettlementsEntity } from '~/models/settlement/entities/settlements.entity';
-import { SettlementsModule } from '~/models/settlement/settlements.module';
+import { UsersEntity } from '~/models/users/entities/users.entity';
+import { UsersModule } from '~/models/users/users.module';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { checkPostGISExtension } from '~/common/utils/postgis';
+import { AuthModule } from '~/models/auth/auth.module';
+import config from '~/config/configuration';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: ['.env.development.local', '.env.production.local'],
       isGlobal: true,
+      load: [config],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, SettlementsModule, UsersModule],
@@ -35,6 +38,7 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
     }),
     UsersModule,
     SettlementsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
