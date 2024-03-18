@@ -5,9 +5,33 @@ import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '~/app.module';
 import { JwtGuard } from '~/models/auth/guards/jwt.guard';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cors = require('cors');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const allowedOrigins = [
+    process.env.FE_APP_HOST,
+    'capacitor://localhost',
+    'ionic://localhost',
+    'http://localhost',
+    'http://localhost:8080',
+    'http://localhost:8100',
+  ];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (allowedOrigins.includes(origin) || !origin) {
+          callback(null, true);
+        } else {
+          callback(new Error('Origin not allowed by CORS'), false);
+        }
+      },
+      credentials: true,
+    }),
+  );
 
   app.use(cookieParser());
   app.useGlobalGuards(new JwtGuard(app.get(Reflector)));
@@ -18,8 +42,6 @@ async function bootstrap() {
   const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-
-  app.enableCors({ origin: process.env.FE_APP_HOST, credentials: true });
 
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
