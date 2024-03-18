@@ -10,7 +10,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
-  app.enableCors({ origin: 'http://localhost:5173', credentials: true });
   app.useGlobalGuards(new JwtGuard(app.get(Reflector)));
 
   const configService = app.get(ConfigService);
@@ -19,6 +18,8 @@ async function bootstrap() {
   const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  app.enableCors({ origin: process.env.FE_APP_HOST, credentials: true });
 
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
