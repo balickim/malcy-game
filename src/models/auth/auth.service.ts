@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-import { AccessToken } from '~/models/auth/types/AccessToken';
+import { Tokens } from '~/models/auth/types/Tokens';
 import { RegisterRequestDto } from '~/models/auth/dtos/register-request.dto';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 import { UsersService } from '~/models/users/users.service';
@@ -26,12 +26,18 @@ export class AuthService {
     return user;
   }
 
-  async login(user: UsersEntity): Promise<AccessToken> {
+  private async generateToken(user: UsersEntity): Promise<Tokens> {
     const payload = { id: user.id, email: user.email, nick: user.nick };
-    return { access_token: this.jwtService.sign(payload) };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '10s' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    return { access_token: accessToken, refresh_token: refreshToken };
   }
 
-  async register(user: RegisterRequestDto): Promise<AccessToken> {
+  async login(user: UsersEntity): Promise<Tokens> {
+    return this.generateToken(user);
+  }
+
+  async register(user: RegisterRequestDto): Promise<Tokens> {
     const existingUser = await this.usersService.findOneByEmail(user.email);
     if (existingUser) {
       throw new BadRequestException('email already exists');
@@ -43,5 +49,21 @@ export class AuthService {
     newUser.password = hashedPassword;
     await this.usersService.create(newUser);
     return this.login(newUser);
+  }
+
+  async refreshToken(user: UsersEntity): Promise<Tokens> {
+    return this.generateToken(user);
+  }
+
+  async validateUserById(id: string): Promise<UsersEntity | null> {
+    return this.usersService.findOneById(id);
+  }
+
+  verifyRefreshToken(refreshToken: string): any {
+    try {
+      return this.jwtService.verify(refreshToken);
+    } catch (error) {
+      throw new BadRequestException('Invalid token');
+    }
   }
 }

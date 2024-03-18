@@ -1,3 +1,3 @@
-import { AccessToken } from '~/models/auth/types/AccessToken';
+import { Tokens } from '~/models/auth/types/Tokens';
 
-export type LoginResponseDTO = AccessToken;
+export type LoginResponseDTO = Tokens;

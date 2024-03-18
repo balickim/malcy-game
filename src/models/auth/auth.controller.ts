@@ -3,18 +3,22 @@ import {
   Body,
   Controller,
   Post,
+  Req,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from 'express';
 
 import { AuthService } from '~/models/auth/auth.service';
 import { RegisterRequestDto } from '~/models/auth/dtos/register-request.dto';
-import { LoginResponseDTO } from '~/models/auth/dtos/login-response.dto';
 import { RegisterResponseDTO } from '~/models/auth/dtos/register-response.dto';
 import { Public } from '~/models/auth/decorators/public.decorator';
-import { LoginRequestDto } from '~/models/auth/dtos/login-request.dto';
 
 @Public()
 @ApiTags('auth')
@@ -24,9 +28,21 @@ export class AuthController {
 
   @UseGuards(AuthGuard('local'))
   @Post('login')
-  @ApiBody({ type: LoginRequestDto })
-  async login(@Request() req): Promise<LoginResponseDTO | BadRequestException> {
-    return this.authService.login(req.user);
+  async login(
+    @Request() req,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const tokenResponse = await this.authService.login(req.user);
+
+    res.cookie('refresh_token', tokenResponse.refresh_token, {
+      httpOnly: true,
+      path: '/',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { access_token: tokenResponse.access_token };
   }
 
   @Post('register')
@@ -34,5 +50,31 @@ export class AuthController {
     @Body() registerBody: RegisterRequestDto,
   ): Promise<RegisterResponseDTO | BadRequestException> {
     return await this.authService.register(registerBody);
+  }
+
+  @Post('refresh')
+  async refresh(
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ access_token: string }> {
+    const refreshToken = req.cookies['refresh_token'];
+    if (!refreshToken) {
+      throw new BadRequestException('No refresh token provided');
+    }
+
+    const payload = this.authService.verifyRefreshToken(refreshToken);
+    const user = await this.authService.validateUserById(payload.id);
+    if (!user) {
+      throw new BadRequestException('Invalid token');
+    }
+    const tokenResponse = await this.authService.refreshToken(user);
+    res.cookie('refresh_token', tokenResponse.refresh_token, {
+      httpOnly: true,
+      path: '/',
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return { access_token: tokenResponse.access_token };
   }
 }
