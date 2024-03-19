@@ -9,9 +9,16 @@ import { Observable } from 'rxjs';
 
 @WebSocketGateway({
   cors: {
-    origin: ['https://localhost', 'http://localhost:5173'],
+    origin: [
+      process.env.FE_APP_HOST,
+      'capacitor://localhost',
+      'ionic://localhost',
+      'http://localhost',
+      'http://localhost:8080',
+      'http://localhost:8100',
+      'http://localhost:8090',
+    ],
     methods: ['GET', 'POST'],
-    allowedHeaders: ['my-custom-header'],
     credentials: true,
   },
 })

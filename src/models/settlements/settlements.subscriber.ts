@@ -30,7 +30,6 @@ export class SettlementsSubscriber
     const lng = point.coordinates[0];
     const lat = point.coordinates[1];
 
-    console.log(event.entity);
     const newSettlementData = {
       id: event.entity.id,
       name: event.entity.name,

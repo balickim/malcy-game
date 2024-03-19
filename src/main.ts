@@ -18,6 +18,7 @@ async function bootstrap() {
     'http://localhost',
     'http://localhost:8080',
     'http://localhost:8100',
+    'http://localhost:8090',
   ];
 
   app.use(
