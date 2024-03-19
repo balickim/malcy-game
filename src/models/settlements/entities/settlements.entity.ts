@@ -6,8 +6,20 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
+  OneToMany,
+  GeoJSON,
 } from 'typeorm';
 import { nanoid } from 'nanoid';
+
+import { UsersEntity } from '~/models/users/entities/users.entity';
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+
+export enum SettlementType {
+  village = 'village',
+  town = 'town',
+  city = 'city',
+}
 
 @Entity({ name: 'settlements' })
 export class SettlementsEntity {
@@ -22,7 +34,20 @@ export class SettlementsEntity {
     spatialFeatureType: 'Point',
     srid: 4326,
   })
-  location: string;
+  location: GeoJSON;
+
+  @Column({
+    type: 'enum',
+    enum: SettlementType,
+    default: SettlementType.village,
+  })
+  type: SettlementType;
+
+  @ManyToOne(() => UsersEntity, (user) => user.settlements)
+  user: UsersEntity;
+
+  @OneToMany(() => ArmyEntity, (army) => army.settlement)
+  armies: ArmyEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

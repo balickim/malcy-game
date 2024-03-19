@@ -12,6 +12,8 @@ import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { AuthModule } from '~/models/auth/auth.module';
 import config from '~/config/configuration';
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { ArmiesModule } from '~/models/armies/armies.module';
 
 @Module({
   imports: [
@@ -33,12 +35,13 @@ import config from '~/config/configuration';
         migrations: [],
         migrationsTableName: 'typeorm_migrations',
         synchronize: configService.get('DB_SYNCHRONIZE', false),
-        entities: [UsersEntity, SettlementsEntity],
+        entities: [UsersEntity, SettlementsEntity, ArmyEntity],
       }),
     }),
     UsersModule,
     SettlementsModule,
     AuthModule,
+    ArmiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

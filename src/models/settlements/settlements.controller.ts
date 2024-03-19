@@ -1,6 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { SettlementsService } from './settlements.service';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+
+import { SettlementsService } from './settlements.service';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 
 @ApiTags('settlements')
 @Controller('settlements')
@@ -27,5 +30,10 @@ export class SettlementsController {
       southWest,
       northEast,
     );
+  }
+
+  @Post('/')
+  async createSettlement(@Body() settlementData: SettlementsDto) {
+    return this.settlementsService.createSettlement(settlementData);
   }
 }

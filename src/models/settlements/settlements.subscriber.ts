@@ -7,6 +7,8 @@ import {
 
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsGateway } from '~/models/settlements/settlements.gateway';
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { Point } from 'geojson';
 
 @EventSubscriber()
 export class SettlementsSubscriber
@@ -23,7 +25,25 @@ export class SettlementsSubscriber
     return SettlementsEntity;
   }
 
-  afterInsert(event: InsertEvent<SettlementsEntity>): Promise<any> | void {
-    this.settlementsGateway.server.emit('foo', event.entity);
+  async afterInsert(event: InsertEvent<SettlementsEntity>) {
+    const point = event.entity.location as Point;
+    const lng = point.coordinates[0];
+    const lat = point.coordinates[1];
+
+    console.log(event.entity);
+    const newSettlementData = {
+      id: event.entity.id,
+      name: event.entity.name,
+      type: event.entity.type,
+      lng: lng,
+      lat: lat,
+    };
+    this.settlementsGateway.server.emit('newSettlement', newSettlementData);
+
+    const army = new ArmyEntity();
+    army.settlement = event.entity;
+    army.knights = 0;
+    army.archers = 0;
+    await event.manager.save(ArmyEntity, army);
   }
 }

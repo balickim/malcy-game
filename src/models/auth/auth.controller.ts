@@ -42,7 +42,7 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { access_token: tokenResponse.access_token };
+    return { access_token: tokenResponse.access_token, userId: req.user.id };
   }
 
   @Post('register')
@@ -56,7 +56,7 @@ export class AuthController {
   async refresh(
     @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: ExpressResponse,
-  ): Promise<{ access_token: string }> {
+  ) {
     const refreshToken = req.cookies['refresh_token'];
     if (!refreshToken) {
       throw new BadRequestException('No refresh token provided');
@@ -75,6 +75,6 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { access_token: tokenResponse.access_token };
+    return { access_token: tokenResponse.access_token, userId: user.id };
   }
 }

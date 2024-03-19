@@ -6,13 +6,17 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
+  AfterInsert,
 } from 'typeorm';
 import { nanoid } from 'nanoid';
 import { IsEmail, IsOptional } from 'class-validator';
 
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+
 @Entity({ name: 'users' })
 export class UsersEntity {
-  @IsOptional()
   @PrimaryColumn()
   id: string;
 
@@ -26,6 +30,12 @@ export class UsersEntity {
 
   @Column({ select: false, nullable: false })
   password: string;
+
+  @OneToMany(() => SettlementsEntity, (settlement) => settlement.user)
+  settlements: SettlementsEntity[];
+
+  @OneToMany(() => ArmyEntity, (army) => army.user)
+  armies: ArmyEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

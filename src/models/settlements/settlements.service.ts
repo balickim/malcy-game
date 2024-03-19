@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { GeoJSON, Repository } from 'typeorm';
 
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
@@ -12,11 +12,19 @@ export class SettlementsService {
     private settlementsEntityRepository: Repository<SettlementsEntity>,
   ) {}
 
-  async createSettlement(
-    settlementData: Partial<SettlementsEntity>,
-  ): Promise<SettlementsEntity> {
-    const newSettlement =
-      this.settlementsEntityRepository.create(settlementData);
+  async createSettlement(settlementData: SettlementsDto) {
+    const { lat, lng, name } = settlementData;
+
+    const locationGeoJSON: GeoJSON.Point = {
+      type: 'Point',
+      coordinates: [lng, lat],
+    };
+
+    const newSettlement = this.settlementsEntityRepository.create({
+      name: name,
+      location: locationGeoJSON,
+    });
+
     return this.settlementsEntityRepository.save(newSettlement);
   }
 
@@ -24,14 +32,13 @@ export class SettlementsService {
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
   ): Promise<SettlementsDto[]> {
-    // Directly using ST_MakeEnvelope to create the bounding box geometry
     const query = this.settlementsEntityRepository
       .createQueryBuilder('settlement')
-      // Using the && operator to check if the location intersects with the bounding box
-      // Notice the direct injection of ST_MakeEnvelope into the query string
       .select([
         'settlement.id AS id',
         'settlement.name AS name',
+        'settlement.userId AS userid',
+        'settlement.type AS type',
         'ST_X(settlement.location) AS lng',
         'ST_Y(settlement.location) AS lat',
       ])
