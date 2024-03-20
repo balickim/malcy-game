@@ -1,19 +1,19 @@
 import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { AppService } from '~/app.service';
 import { AppController } from '~/app.controller';
-import { UsersEntity } from '~/models/users/entities/users.entity';
-import { UsersModule } from '~/models/users/users.module';
+import { AppService } from '~/app.service';
+import { checkPostGISExtension } from '~/common/utils/postgis';
+import config from '~/config/configuration';
+import { ArmiesModule } from '~/models/armies/armies.module';
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { AuthModule } from '~/models/auth/auth.module';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
-import { checkPostGISExtension } from '~/common/utils/postgis';
-import { AuthModule } from '~/models/auth/auth.module';
-import config from '~/config/configuration';
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
-import { ArmiesModule } from '~/models/armies/armies.module';
+import { UsersEntity } from '~/models/users/entities/users.entity';
+import { UsersModule } from '~/models/users/users.module';
 
 @Module({
   imports: [

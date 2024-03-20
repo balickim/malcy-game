@@ -1,3 +1,4 @@
+import { Point } from 'geojson';
 import {
   DataSource,
   EntitySubscriberInterface,
@@ -5,10 +6,9 @@ import {
   InsertEvent,
 } from 'typeorm';
 
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsGateway } from '~/models/settlements/settlements.gateway';
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
-import { Point } from 'geojson';
 
 @EventSubscriber()
 export class SettlementsSubscriber

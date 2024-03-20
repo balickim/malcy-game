@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+
 import { SettlementsGateway } from './settlements.gateway';
 
 describe('SettlementsGateway', () => {

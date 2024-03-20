@@ -4,8 +4,8 @@ import {
   WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
 import { Observable } from 'rxjs';
+import { Server } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
@@ -14,8 +14,6 @@ import { Observable } from 'rxjs';
       'capacitor://localhost',
       'ionic://localhost',
       'http://localhost',
-      'http://localhost:8080',
-      'http://localhost:8100',
       'http://localhost:8090',
     ],
     methods: ['GET', 'POST'],

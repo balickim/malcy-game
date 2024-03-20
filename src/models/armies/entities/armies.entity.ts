@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import {
   BeforeInsert,
   Column,
@@ -10,9 +11,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UsersEntity } from '~/models/users/entities/users.entity';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
-import { nanoid } from 'nanoid';
+import { UsersEntity } from '~/models/users/entities/users.entity';
 
 @Entity({ name: 'armies' })
 export class ArmyEntity {

@@ -1,10 +1,11 @@
-import { NestFactory, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '~/app.module';
 import { JwtGuard } from '~/models/auth/guards/jwt.guard';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cors = require('cors');
 
@@ -16,8 +17,6 @@ async function bootstrap() {
     'capacitor://localhost',
     'ionic://localhost',
     'http://localhost',
-    'http://localhost:8080',
-    'http://localhost:8100',
     'http://localhost:8090',
   ];
 

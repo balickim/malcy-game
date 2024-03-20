@@ -16,9 +16,9 @@ import {
 } from 'express';
 
 import { AuthService } from '~/models/auth/auth.service';
+import { Public } from '~/models/auth/decorators/public.decorator';
 import { RegisterRequestDto } from '~/models/auth/dtos/register-request.dto';
 import { RegisterResponseDTO } from '~/models/auth/dtos/register-response.dto';
-import { Public } from '~/models/auth/decorators/public.decorator';
 
 @Public()
 @ApiTags('auth')

@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-import { Tokens } from '~/models/auth/types/Tokens';
 import { RegisterRequestDto } from '~/models/auth/dtos/register-request.dto';
+import { Tokens } from '~/models/auth/types/Tokens';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 import { UsersService } from '~/models/users/users.service';
 
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<UsersEntity> {
@@ -28,8 +30,16 @@ export class AuthService {
 
   private async generateToken(user: UsersEntity): Promise<Tokens> {
     const payload = { id: user.id, email: user.email, nick: user.nick };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '10s' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.getOrThrow(
+        'ACCESS_TOKEN_VALIDITY_DURATION_IN_SEC',
+      ),
+    });
+    const refreshToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.getOrThrow(
+        'REFRESH_TOKEN_VALIDITY_DURATION_IN_SEC',
+      ),
+    });
     return { access_token: accessToken, refresh_token: refreshToken };
   }
 

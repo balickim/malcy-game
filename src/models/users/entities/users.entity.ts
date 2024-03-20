@@ -1,3 +1,5 @@
+import { IsEmail, IsOptional } from 'class-validator';
+import { nanoid } from 'nanoid';
 import {
   Entity,
   PrimaryColumn,
@@ -7,10 +9,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
-  AfterInsert,
 } from 'typeorm';
-import { nanoid } from 'nanoid';
-import { IsEmail, IsOptional } from 'class-validator';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';

@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { SettlementsService } from './settlements.service';
-import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
+
+import { SettlementsService } from './settlements.service';
 
 @ApiTags('settlements')
 @Controller('settlements')
