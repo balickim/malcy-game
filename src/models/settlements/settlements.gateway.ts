@@ -14,6 +14,7 @@ import { Server } from 'socket.io';
       'capacitor://localhost',
       'ionic://localhost',
       'http://localhost',
+      'http://localhost:5173',
       'http://localhost:8090',
     ],
     methods: ['GET', 'POST'],

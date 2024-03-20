@@ -41,8 +41,9 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    delete req.user.password;
 
-    return { access_token: tokenResponse.access_token, userId: req.user.id };
+    return { access_token: tokenResponse.access_token, user: req.user };
   }
 
   @Post('register')
@@ -75,6 +76,6 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    return { access_token: tokenResponse.access_token, userId: user.id };
+    return { access_token: tokenResponse.access_token, user };
   }
 }
