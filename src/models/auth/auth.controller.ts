@@ -10,15 +10,16 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-} from 'express';
+import { Response as ExpressResponse } from 'express';
 
 import { AuthService } from '~/models/auth/auth.service';
 import { Public } from '~/models/auth/decorators/public.decorator';
 import { RegisterRequestDto } from '~/models/auth/dtos/register-request.dto';
 import { RegisterResponseDTO } from '~/models/auth/dtos/register-response.dto';
+import {
+  IExpressRequestWithUser,
+  RefreshTokenGuard,
+} from '~/models/auth/guards/jwt.guard';
 
 @Public()
 @ApiTags('auth')
@@ -29,7 +30,7 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(
-    @Request() req,
+    @Request() req: IExpressRequestWithUser,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     const tokenResponse = await this.authService.login(req.user);
@@ -53,21 +54,13 @@ export class AuthController {
     return await this.authService.register(registerBody);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   async refresh(
-    @Req() req: ExpressRequest,
+    @Req() req: IExpressRequestWithUser,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    const refreshToken = req.cookies['refresh_token'];
-    if (!refreshToken) {
-      throw new BadRequestException('No refresh token provided');
-    }
-
-    const payload = this.authService.verifyRefreshToken(refreshToken);
-    const user = await this.authService.validateUserById(payload.id);
-    if (!user) {
-      throw new BadRequestException('Invalid token');
-    }
+    const user = req.user;
     const tokenResponse = await this.authService.refreshToken(user);
     res.cookie('refresh_token', tokenResponse.refresh_token, {
       httpOnly: true,
