@@ -26,6 +26,8 @@ export class SettlementsSubscriber
   }
 
   async afterInsert(event: InsertEvent<SettlementsEntity>) {
+    if (process.env.PROCESS_ENV === 'seeding') return; // turn off "afterInsert" while seeding
+
     const point = event.entity.location as Point;
     const lng = point.coordinates[0];
     const lat = point.coordinates[1];

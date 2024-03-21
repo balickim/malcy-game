@@ -19,6 +19,8 @@ export class UsersSubscriber implements EntitySubscriberInterface<UsersEntity> {
   }
 
   async afterInsert(event: InsertEvent<UsersEntity>) {
+    if (process.env.PROCESS_ENV === 'seeding') return; // turn off "afterInsert" while seeding
+
     const army = new ArmyEntity();
     army.user = event.entity;
     await event.manager.save(ArmyEntity, army);
