@@ -5,8 +5,8 @@ import { DataSource } from 'typeorm';
 
 import { AppController } from '~/app.controller';
 import { AppService } from '~/app.service';
+import config from '~/common/config/configuration';
 import { checkPostGISExtension } from '~/common/utils/postgis';
-import config from '~/config/configuration';
 import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';

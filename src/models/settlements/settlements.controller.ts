@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 
 import { SettlementsService } from './settlements.service';
@@ -33,7 +34,10 @@ export class SettlementsController {
   }
 
   @Post('/')
-  async createSettlement(@Body() settlementData: SettlementsDto) {
-    return this.settlementsService.createSettlement(settlementData);
+  async createSettlement(
+    @Request() req: IExpressRequestWithUser,
+    @Body() settlementData: SettlementsDto,
+  ) {
+    return this.settlementsService.createSettlement(settlementData, req.user);
   }
 }

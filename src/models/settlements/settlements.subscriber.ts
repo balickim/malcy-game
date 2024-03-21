@@ -38,6 +38,7 @@ export class SettlementsSubscriber
       type: event.entity.type,
       lng: lng,
       lat: lat,
+      user: event.entity.user,
     };
     this.settlementsGateway.server.emit('newSettlement', newSettlementData);
 

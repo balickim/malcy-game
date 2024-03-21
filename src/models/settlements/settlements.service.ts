@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { UsersEntity } from '~/models/users/entities/users.entity';
 
 @Injectable()
 export class SettlementsService {
@@ -14,7 +15,7 @@ export class SettlementsService {
     private settlementsEntityRepository: Repository<SettlementsEntity>,
   ) {}
 
-  async createSettlement(settlementData: SettlementsDto) {
+  async createSettlement(settlementData: SettlementsDto, user: UsersEntity) {
     const { lat, lng, name } = settlementData;
 
     const locationGeoJSON: GeoJSON.Point = {
@@ -25,6 +26,7 @@ export class SettlementsService {
     const newSettlement = this.settlementsEntityRepository.create({
       name: name,
       location: locationGeoJSON,
+      user,
     });
 
     return this.settlementsEntityRepository.save(newSettlement);
@@ -55,7 +57,25 @@ export class SettlementsService {
           },
         );
 
-      return query.getRawMany();
+      const rawResults = await query.getRawMany();
+
+      return rawResults.map((result) => {
+        return {
+          id: result.id,
+          name: result.name,
+          type: result.type,
+          lng: result.lng,
+          lat: result.lat,
+          user: {
+            id: result.user_id,
+            nick: result.user_nick,
+            email: result.user_email,
+            createdAt: result.user_createdAt,
+            updatedAt: result.user_updatedAt,
+            deletedAt: result.user_deletedAt,
+          },
+        };
+      });
     } catch (e) {
       this.logger.error(
         `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED`,
