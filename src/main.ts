@@ -11,9 +11,10 @@ const cors = require('cors');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   const allowedOrigins = [
-    process.env.FE_APP_HOST,
+    configService.get('FE_APP_HOST'),
     'capacitor://localhost',
     'ionic://localhost',
     'http://localhost',
@@ -37,8 +38,9 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalGuards(new JwtGuard(app.get(Reflector)));
 
-  const configService = app.get(ConfigService);
-  const port = configService.get('PORT') || 3000;
+  const port = configService.get('PORT');
+
+  console.log(configService.get('DATABASE.PORT'));
 
   const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);

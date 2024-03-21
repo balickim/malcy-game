@@ -25,18 +25,20 @@ import { UsersModule } from '~/models/users/users.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, SettlementsModule, UsersModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DB_HOST', 'localhost'),
-        port: configService.get('DB_PORT', 5432),
-        username: configService.get('DB_USERNAME', 'root'),
-        password: configService.get('DB_PASSWORD', 'root'),
-        database: configService.get('DB_DATABASE', 'test'),
-        migrations: [],
-        migrationsTableName: 'typeorm_migrations',
-        synchronize: configService.get('DB_SYNCHRONIZE', false),
-        entities: [UsersEntity, SettlementsEntity, ArmyEntity],
-      }),
+      useFactory: (configService: ConfigService) => {
+        return {
+          type: 'postgres',
+          host: configService.get('DATABASE.HOST'),
+          port: configService.get('DATABASE.PORT'),
+          username: configService.get('DATABASE.USERNAME'),
+          password: configService.get('DATABASE.PASSWORD'),
+          database: configService.get('DATABASE.DATABASE'),
+          migrations: [],
+          migrationsTableName: 'typeorm_migrations',
+          synchronize: configService.get('DATABASE.SYNCHRONIZE'),
+          entities: [UsersEntity, SettlementsEntity, ArmyEntity],
+        };
+      },
     }),
     UsersModule,
     SettlementsModule,

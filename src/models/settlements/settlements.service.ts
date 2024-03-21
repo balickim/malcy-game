@@ -37,11 +37,11 @@ export class SettlementsService {
       .select([
         'settlement.id AS id',
         'settlement.name AS name',
-        'settlement.userId AS userid',
         'settlement.type AS type',
         'ST_X(settlement.location) AS lng',
         'ST_Y(settlement.location) AS lat',
       ])
+      .leftJoinAndSelect('settlement.user', 'user')
       .where(
         `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
         {

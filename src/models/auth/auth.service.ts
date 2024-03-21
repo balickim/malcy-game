@@ -31,14 +31,10 @@ export class AuthService {
   private async generateToken(user: UsersEntity): Promise<Tokens> {
     const payload = { id: user.id, email: user.email, nick: user.nick };
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.getOrThrow(
-        'ACCESS_TOKEN_VALIDITY_DURATION_IN_SEC',
-      ),
+      expiresIn: this.configService.getOrThrow('JWT.ACCESS_TOKEN_EXPIRES_IN'),
     });
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.getOrThrow(
-        'REFRESH_TOKEN_VALIDITY_DURATION_IN_SEC',
-      ),
+      expiresIn: this.configService.getOrThrow('REFRESH_TOKEN_EXPIRES_IN'),
     });
     return { access_token: accessToken, refresh_token: refreshToken };
   }

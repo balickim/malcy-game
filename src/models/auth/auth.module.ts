@@ -14,12 +14,10 @@ import { UsersModule } from '~/models/users/users.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('JWT.JWT_SECRET'),
         signOptions: {
           expiresIn: parseInt(
-            configService.getOrThrow<string>(
-              'ACCESS_TOKEN_VALIDITY_DURATION_IN_SEC',
-            ),
+            configService.getOrThrow<string>('JWT.ACCESS_TOKEN_EXPIRES_IN'),
           ),
         },
       }),
