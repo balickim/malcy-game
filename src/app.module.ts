@@ -8,11 +8,8 @@ import { AppService } from '~/app.service';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import config from '~/config/configuration';
 import { ArmiesModule } from '~/models/armies/armies.module';
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { AuthModule } from '~/models/auth/auth.module';
-import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
-import { UsersEntity } from '~/models/users/entities/users.entity';
 import { UsersModule } from '~/models/users/users.module';
 
 @Module({
@@ -36,7 +33,7 @@ import { UsersModule } from '~/models/users/users.module';
           migrations: [],
           migrationsTableName: 'typeorm_migrations',
           synchronize: configService.get('DATABASE.SYNCHRONIZE'),
-          entities: [UsersEntity, SettlementsEntity, ArmyEntity],
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
         };
       },
     }),
