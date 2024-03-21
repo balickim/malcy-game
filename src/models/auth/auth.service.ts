@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,8 @@ import { UsersService } from '~/models/users/users.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -44,8 +46,11 @@ export class AuthService {
   }
 
   async register(user: RegisterRequestDto): Promise<Tokens> {
+    this.logger.log(`REGISTERING USER EMAIL ${user.email}`);
+
     const existingUser = await this.usersService.findOneByEmail(user.email);
     if (existingUser) {
+      this.logger.error(`EMAIL ALREADE EXISTS USER EMAIL ${user.email}`);
       throw new BadRequestException('email already exists');
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
@@ -58,6 +63,7 @@ export class AuthService {
   }
 
   async refreshToken(user: UsersEntity): Promise<Tokens> {
+    this.logger.log(`REFRESHING TOKEN USER ID ${user.id}`);
     return this.generateToken(user);
   }
 

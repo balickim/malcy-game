@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 
@@ -6,6 +6,8 @@ import { UsersEntity } from '~/models/users/entities/users.entity';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(UsersEntity)
     private usersRepository: Repository<UsersEntity>,
@@ -27,8 +29,17 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
-  create(user: UsersEntity): Promise<UsersEntity> {
-    return this.usersRepository.save(user);
+  async create(user: UsersEntity): Promise<UsersEntity> {
+    this.logger.log(`SAVING USER ID ${user.id}`);
+    let res;
+    try {
+      res = await this.usersRepository.save(user);
+    } catch (e) {
+      this.logger.error(`SAVING USER FAILED ${user.id}`);
+    }
+    this.logger.log(`USER SAVED ${user.id}`);
+
+    return res;
   }
 
   update(

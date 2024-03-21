@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -7,6 +7,8 @@ import { SettlementsEntity } from '~/models/settlements/entities/settlements.ent
 
 @Injectable()
 export class SettlementsService {
+  private readonly logger = new Logger(SettlementsService.name);
+
   constructor(
     @InjectRepository(SettlementsEntity)
     private settlementsEntityRepository: Repository<SettlementsEntity>,
@@ -32,26 +34,32 @@ export class SettlementsService {
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
   ): Promise<SettlementsDto[]> {
-    const query = this.settlementsEntityRepository
-      .createQueryBuilder('settlement')
-      .select([
-        'settlement.id AS id',
-        'settlement.name AS name',
-        'settlement.type AS type',
-        'ST_X(settlement.location) AS lng',
-        'ST_Y(settlement.location) AS lat',
-      ])
-      .leftJoinAndSelect('settlement.user', 'user')
-      .where(
-        `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
-        {
-          southWestLng: southWest.lng,
-          southWestLat: southWest.lat,
-          northEastLng: northEast.lng,
-          northEastLat: northEast.lat,
-        },
-      );
+    try {
+      const query = this.settlementsEntityRepository
+        .createQueryBuilder('settlement')
+        .select([
+          'settlement.id AS id',
+          'settlement.name AS name',
+          'settlement.type AS type',
+          'ST_X(settlement.location) AS lng',
+          'ST_Y(settlement.location) AS lat',
+        ])
+        .leftJoinAndSelect('settlement.user', 'user')
+        .where(
+          `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
+          {
+            southWestLng: southWest.lng,
+            southWestLat: southWest.lat,
+            northEastLng: northEast.lng,
+            northEastLat: northEast.lat,
+          },
+        );
 
-    return query.getRawMany();
+      return query.getRawMany();
+    } catch (e) {
+      this.logger.error(
+        `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED`,
+      );
+    }
   }
 }
