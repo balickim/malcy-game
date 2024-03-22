@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { ResponseMessage } from '~/common/decorators/response_message.decorator';
 import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 
@@ -12,6 +13,7 @@ export class SettlementsController {
   constructor(private readonly settlementsService: SettlementsService) {}
 
   @Get('/bounds')
+  @ResponseMessage('Fetched Settlements Succesfully')
   async findInBounds(
     @Query('southWestLat') southWestLat: string,
     @Query('southWestLng') southWestLng: string,

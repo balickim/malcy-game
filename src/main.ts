@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '~/app.module';
+import { TransformInterceptor } from '~/common/interceptors/response.interceptor';
 import { JwtGuard } from '~/models/auth/guards/jwt.guard';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -37,6 +38,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.useGlobalGuards(new JwtGuard(app.get(Reflector)));
+  app.useGlobalInterceptors(new TransformInterceptor(new Reflector()));
 
   const port = configService.get('PORT');
 
