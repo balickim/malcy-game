@@ -42,8 +42,6 @@ async function bootstrap() {
 
   const port = configService.get('PORT');
 
-  console.log(configService.get('DATABASE.PORT'));
-
   const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

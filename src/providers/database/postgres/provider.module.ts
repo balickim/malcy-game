@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { UserLocationModule } from '~/models/user-location/user-location.module';
+import { UsersEntity } from '~/models/users/entities/users.entity';
 import { UsersModule } from '~/models/users/users.module';
 
 @Module({
@@ -27,7 +30,7 @@ import { UsersModule } from '~/models/users/users.module';
           migrations: [],
           migrationsTableName: 'typeorm_migrations',
           synchronize: configService.get('DATABASE.SYNCHRONIZE'),
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          entities: [UsersEntity, SettlementsEntity, ArmyEntity],
         };
       },
     } as TypeOrmModuleAsyncOptions),

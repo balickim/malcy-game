@@ -9,8 +9,10 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
+import { UserLocationModule } from '~/models/user-location/user-location.module';
 import { UsersModule } from '~/models/users/users.module';
 import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/provider.module';
+import { RedisProviderModule } from '~/providers/database/redis/provider.module';
 
 @Module({
   imports: [
@@ -20,10 +22,12 @@ import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/pr
       load: [config],
     }),
     PostgresDatabaseProviderModule,
+    RedisProviderModule,
     UsersModule,
     SettlementsModule,
     AuthModule,
     ArmiesModule,
+    UserLocationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
