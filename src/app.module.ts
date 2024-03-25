@@ -1,6 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 
 import { AppController } from '~/app.controller';
@@ -11,6 +10,7 @@ import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { UsersModule } from '~/models/users/users.module';
+import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/provider.module';
 
 @Module({
   imports: [
@@ -19,24 +19,7 @@ import { UsersModule } from '~/models/users/users.module';
       isGlobal: true,
       load: [config],
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, SettlementsModule, UsersModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return {
-          type: 'postgres',
-          host: configService.get('DATABASE.HOST'),
-          port: configService.get('DATABASE.PORT'),
-          username: configService.get('DATABASE.USERNAME'),
-          password: configService.get('DATABASE.PASSWORD'),
-          database: configService.get('DATABASE.DATABASE'),
-          migrations: [],
-          migrationsTableName: 'typeorm_migrations',
-          synchronize: configService.get('DATABASE.SYNCHRONIZE'),
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        };
-      },
-    }),
+    PostgresDatabaseProviderModule,
     UsersModule,
     SettlementsModule,
     AuthModule,
