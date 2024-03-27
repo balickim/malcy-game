@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/models/users/entities/users.entity';
@@ -13,6 +14,8 @@ export class SettlementsService {
   constructor(
     @InjectRepository(SettlementsEntity)
     private settlementsEntityRepository: Repository<SettlementsEntity>,
+    @InjectRepository(ArmyEntity)
+    private armyRepository: Repository<ArmyEntity>,
   ) {}
 
   async createSettlement(settlementData: SettlementsDto, user: UsersEntity) {
@@ -81,5 +84,26 @@ export class SettlementsService {
         `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED`,
       );
     }
+  }
+
+  async getSettlementById(id: string, user: UsersEntity): Promise<ArmyEntity> {
+    const settlement = await this.settlementsEntityRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!settlement)
+      throw new NotFoundException(`Settlement not found with ID: ${id}`);
+
+    if (settlement.user.id !== user.id) {
+      throw new NotFoundException(
+        `User does not own settlement with ID: ${id}`,
+      );
+    }
+
+    const armies = await this.armyRepository.findOne({
+      select: ['knights', 'archers'],
+      where: { settlementId: id },
+    });
+    return armies;
   }
 }

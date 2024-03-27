@@ -22,7 +22,9 @@ export class UserLocationService {
     });
 
     if (!isWithinProximity) {
-      throw new WsException('User has moved too far too quickly.');
+      throw new WsException(
+        'User has moved too far too quickly. This new position will not be registered and now is out of sync with the server.',
+      );
     }
 
     await this.redis.geoadd(

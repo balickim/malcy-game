@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
@@ -41,5 +49,13 @@ export class SettlementsController {
     @Body() settlementData: SettlementsDto,
   ) {
     return this.settlementsService.createSettlement(settlementData, req.user);
+  }
+
+  @Get(':id')
+  async getSettlementById(
+    @Request() req: IExpressRequestWithUser,
+    @Param() params: { id: string },
+  ) {
+    return this.settlementsService.getSettlementById(params.id, req.user);
   }
 }
