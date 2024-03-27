@@ -9,6 +9,8 @@ export interface IUpdateLocationParams {
   longitude: number;
 }
 
+const userLocationsKey = 'user:locations';
+const userLocationTimestampKey = 'user:location:timestamp';
 @Injectable()
 export class UserLocationService {
   constructor(@InjectRedis() private readonly redis: Redis) {}
@@ -28,14 +30,14 @@ export class UserLocationService {
     }
 
     await this.redis.geoadd(
-      'userLocations',
+      userLocationsKey,
       params.longitude,
       params.latitude,
       params.userId,
     );
     const timestamp = Date.now();
     await this.redis.hset(
-      `user:location:timestamp`,
+      userLocationTimestampKey,
       params.userId,
       timestamp.toString(),
     );
@@ -48,13 +50,13 @@ export class UserLocationService {
     radius: number;
   }): Promise<boolean> {
     const userLocation = await this.redis.geopos(
-      'userLocations',
+      userLocationsKey,
       params.userId,
     );
     if (!userLocation[0]) return true; // accept location if there is none
 
     const previousTimestamp = await this.redis.hget(
-      'user:location:timestamp',
+      userLocationTimestampKey,
       params.userId,
     );
     const currentTimestamp = Date.now();
@@ -64,18 +66,18 @@ export class UserLocationService {
     // Unique temp key for current location
     const tempKey = `tempLocation:${params.userId}:${Date.now()}`;
     await this.redis.geoadd(
-      'userLocations',
+      userLocationsKey,
       params.currentLongitude,
       params.currentLatitude,
       tempKey,
     );
     const distance = await this.redis.geodist(
-      'userLocations',
+      userLocationsKey,
       params.userId,
       tempKey,
       () => 'm',
     );
-    await this.redis.zrem('userLocations', tempKey);
+    await this.redis.zrem(userLocationsKey, tempKey);
     if (!distance) return true;
 
     console.log('distance', distance);

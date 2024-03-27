@@ -19,4 +19,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
 })
-export class RedisProviderModule {}
+export class CacheRedisProviderModule {}

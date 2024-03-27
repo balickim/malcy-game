@@ -8,11 +8,13 @@ import config from '~/common/config/configuration';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
+import { RecruitModule } from '~/models/recruit/recruit.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { UserLocationModule } from '~/models/user-location/user-location.module';
 import { UsersModule } from '~/models/users/users.module';
+import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.module';
 import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/provider.module';
-import { RedisProviderModule } from '~/providers/database/redis/provider.module';
+import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.module';
 
 @Module({
   imports: [
@@ -22,12 +24,14 @@ import { RedisProviderModule } from '~/providers/database/redis/provider.module'
       load: [config],
     }),
     PostgresDatabaseProviderModule,
-    RedisProviderModule,
+    CacheRedisProviderModule,
+    QueueRedisProviderModule,
     UsersModule,
     SettlementsModule,
     AuthModule,
     ArmiesModule,
     UserLocationModule,
+    RecruitModule,
   ],
   controllers: [AppController],
   providers: [AppService],
