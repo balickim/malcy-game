@@ -13,9 +13,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         };
       },
     }),
-    BullModule.registerQueue({
-      name: 'recruitQueue',
-    }),
   ],
   exports: [BullModule],
 })
