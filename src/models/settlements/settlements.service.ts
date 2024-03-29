@@ -2,7 +2,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/models/users/entities/users.entity';
@@ -14,8 +13,6 @@ export class SettlementsService {
   constructor(
     @InjectRepository(SettlementsEntity)
     private settlementsEntityRepository: Repository<SettlementsEntity>,
-    @InjectRepository(ArmyEntity)
-    private armyRepository: Repository<ArmyEntity>,
   ) {}
 
   async createSettlement(settlementData: SettlementsDto, user: UsersEntity) {

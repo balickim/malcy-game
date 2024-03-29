@@ -1,16 +1,11 @@
-import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Bull from 'bull';
-import Redis from 'ioredis';
 
 @Injectable()
 export class QueuesManagerService {
   private queues: Map<string, Bull.Queue> = new Map();
-  constructor(
-    private configService: ConfigService,
-    @InjectRedis() private readonly redis: Redis,
-  ) {}
+  constructor(private configService: ConfigService) {}
 
   // TODO assign processors to all active or waiting jobs after server restart
   // async getAllSettlementRecruitmentQueueNames(): Promise<string[]> {

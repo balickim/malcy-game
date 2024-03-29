@@ -7,7 +7,7 @@ import Redis from 'ioredis';
 import { Repository } from 'typeorm';
 
 import { sleep } from '~/common/utils';
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { ArmyEntity, UnitType } from '~/models/armies/entities/armies.entity';
 import { QueuesManagerService } from '~/models/queues-manager/queues-manager.service';
 import {
   RequestRecruitmentDto,
@@ -16,8 +16,13 @@ import {
 import { SettlementsService } from '~/models/settlements/settlements.service';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
-const settlementRecruitmentQueueName = (settlementId: string) =>
-  `settlement_${settlementId}`;
+const bullSettlementRecruitmentQueueName = (settlementId: string) =>
+  `recruitment:settlement_${settlementId}`;
+const settlementRecruitmentProgressKey = (
+  settlementId: string,
+  unitType: UnitType,
+  jobId: number | string,
+) => `recruitmentProgress:${settlementId}:${unitType}:${jobId}`;
 
 @Injectable()
 export class RecruitService {
@@ -50,8 +55,21 @@ export class RecruitService {
     const unitRecruitmentTime = this.configService.get<number>(
       `RECRUITMENT_TIMES_MS.${type}.${recruitDto.unitType}`,
     );
+
+    const unfinishedJobs = await this.getUnfinishedJobsBySettlementId(
+      recruitDto.settlementId,
+    );
+    let totalDelayMs = 0;
+    for (const job of unfinishedJobs) {
+      const jobFinishTime = new Date(job.data.finishesOn).getTime();
+      const now = Date.now();
+      if (jobFinishTime > now) {
+        totalDelayMs += jobFinishTime - now;
+      }
+    }
+
     const finishesOn = new Date(
-      Date.now() + recruitDto.unitCount * unitRecruitmentTime,
+      Date.now() + recruitDto.unitCount * unitRecruitmentTime + totalDelayMs,
     );
     const data: ResponseRecruitmentDto = {
       ...recruitDto,
@@ -60,7 +78,7 @@ export class RecruitService {
     };
 
     const queue = await this.queueService.generateQueue(
-      settlementRecruitmentQueueName(recruitDto.settlementId),
+      bullSettlementRecruitmentQueueName(recruitDto.settlementId),
       this.recruitProcessor(),
     );
     const job: Bull.Job<ResponseRecruitmentDto> = await queue.add(data, {
@@ -137,7 +155,7 @@ export class RecruitService {
   async getUnfinishedJobsBySettlementId(settlementId: string) {
     let jobs: Bull.Job<ResponseRecruitmentDto>[] =
       await this.queueService.getJobsFromQueue(
-        settlementRecruitmentQueueName(settlementId),
+        bullSettlementRecruitmentQueueName(settlementId),
         ['active', 'waiting'],
       );
 
@@ -155,7 +173,11 @@ export class RecruitService {
     jobId: number | string,
     progress: number,
   ): Promise<void> {
-    const key = `recruitment:${recruitDto.settlementId}:${recruitDto.unitType}:${jobId}`;
+    const key = settlementRecruitmentProgressKey(
+      recruitDto.settlementId,
+      recruitDto.unitType,
+      jobId,
+    );
     await this.redis.set(key, progress.toString(), 'EX', 60 * 60 * 24 * 7); // Expire after a week
   }
 
@@ -163,7 +185,11 @@ export class RecruitService {
     recruitDto: RequestRecruitmentDto,
     jobId: number | string,
   ): Promise<number> {
-    const key = `recruitment:${recruitDto.settlementId}:${recruitDto.unitType}:${jobId}`;
+    const key = settlementRecruitmentProgressKey(
+      recruitDto.settlementId,
+      recruitDto.unitType,
+      jobId,
+    );
     const progress = await this.redis.get(key);
     return progress ? parseInt(progress, 10) : 0;
   }
@@ -178,7 +204,7 @@ export class RecruitService {
     if (settlement.user.id !== user.id) throw new UnauthorizedException();
 
     const queue: Bull.Queue = new Bull(
-      settlementRecruitmentQueueName(settlementId),
+      bullSettlementRecruitmentQueueName(settlementId),
       this.configService.get<string>('REDIS_CONNECTION_STRING'),
     );
     const job = await queue.getJob(jobId);
