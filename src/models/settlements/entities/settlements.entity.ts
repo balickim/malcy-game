@@ -8,8 +8,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
-  OneToMany,
   GeoJSON,
+  OneToOne,
 } from 'typeorm';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
@@ -46,8 +46,8 @@ export class SettlementsEntity {
   @ManyToOne(() => UsersEntity, (user) => user.settlements)
   user: UsersEntity;
 
-  @OneToMany(() => ArmyEntity, (army) => army.settlement)
-  armies: ArmyEntity[];
+  @OneToOne(() => ArmyEntity, (army) => army.settlement)
+  army: ArmyEntity;
 
   @CreateDateColumn()
   createdAt: Date;

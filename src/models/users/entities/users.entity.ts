@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
@@ -33,8 +34,8 @@ export class UsersEntity {
   @OneToMany(() => SettlementsEntity, (settlement) => settlement.user)
   settlements: SettlementsEntity[];
 
-  @OneToMany(() => ArmyEntity, (army) => army.user)
-  armies: ArmyEntity[];
+  @OneToOne(() => ArmyEntity, (army) => army.user)
+  army: ArmyEntity;
 
   @CreateDateColumn()
   createdAt: Date;

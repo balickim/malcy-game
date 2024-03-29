@@ -6,7 +6,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -36,11 +36,11 @@ export class ArmyEntity {
   @Column({ nullable: true })
   settlementId?: string;
 
-  @ManyToOne(() => UsersEntity, (user) => user.armies)
+  @OneToOne(() => UsersEntity, (user) => user.army)
   @JoinColumn({ name: 'userId' })
   user: UsersEntity;
 
-  @ManyToOne(() => SettlementsEntity, (settlement) => settlement.armies)
+  @OneToOne(() => SettlementsEntity, (settlement) => settlement.army)
   @JoinColumn({ name: 'settlementId' })
   settlement: SettlementsEntity;
 

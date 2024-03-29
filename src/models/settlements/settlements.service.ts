@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
-import SettlementDetailsDto from '~/models/settlements/dtos/settlementDetails.dto';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/models/users/entities/users.entity';
@@ -90,7 +89,7 @@ export class SettlementsService {
   async getUsersSettlementGarrisonById(id: string, user: UsersEntity) {
     const settlement = await this.settlementsEntityRepository.findOne({
       where: { id },
-      relations: ['user', 'armies'],
+      relations: ['user', 'army'],
     });
     if (!settlement)
       throw new NotFoundException(`Settlement not found with ID: ${id}`);
@@ -101,7 +100,7 @@ export class SettlementsService {
       );
     }
 
-    return settlement.armies[0];
+    return settlement.army;
   }
 
   async getSettlementById(id: string) {
