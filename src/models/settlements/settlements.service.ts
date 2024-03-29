@@ -87,13 +87,10 @@ export class SettlementsService {
     }
   }
 
-  async getSettlementById(
-    id: string,
-    user: UsersEntity,
-  ): Promise<SettlementDetailsDto> {
+  async getUsersSettlementGarrisonById(id: string, user: UsersEntity) {
     const settlement = await this.settlementsEntityRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'armies'],
     });
     if (!settlement)
       throw new NotFoundException(`Settlement not found with ID: ${id}`);
@@ -104,10 +101,17 @@ export class SettlementsService {
       );
     }
 
-    const armies = await this.armyRepository.findOne({
-      select: ['knights', 'archers'],
-      where: { settlementId: id },
+    return settlement.armies[0];
+  }
+
+  async getSettlementById(id: string) {
+    const settlement = await this.settlementsEntityRepository.findOne({
+      where: { id },
+      relations: ['user'],
     });
-    return armies;
+    if (!settlement)
+      throw new NotFoundException(`Settlement not found with ID: ${id}`);
+
+    return settlement;
   }
 }

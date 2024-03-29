@@ -56,6 +56,9 @@ export class SettlementsController {
     @Request() req: IExpressRequestWithUser,
     @Param() params: { id: string },
   ) {
-    return this.settlementsService.getSettlementById(params.id, req.user);
+    return this.settlementsService.getUsersSettlementGarrisonById(
+      params.id,
+      req.user,
+    );
   }
 }

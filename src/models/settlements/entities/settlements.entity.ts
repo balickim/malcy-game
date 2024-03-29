@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import {
   Entity,
   PrimaryColumn,
@@ -10,10 +11,9 @@ import {
   OneToMany,
   GeoJSON,
 } from 'typeorm';
-import { nanoid } from 'nanoid';
 
-import { UsersEntity } from '~/models/users/entities/users.entity';
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import { UsersEntity } from '~/models/users/entities/users.entity';
 
 export enum SettlementType {
   village = 'village',

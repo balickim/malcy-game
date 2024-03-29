@@ -14,6 +14,11 @@ import {
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
+export enum UnitType {
+  knights = 'knights',
+  archers = 'archers',
+}
+
 @Entity({ name: 'armies' })
 export class ArmyEntity {
   @PrimaryColumn()

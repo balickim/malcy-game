@@ -54,8 +54,10 @@ export class QueuesManagerService {
     return queue;
   }
 
-  async getAllJobsFromQueue(name: string): Promise<Bull.Job[]> {
-    const jobStatuses: Bull.JobStatus[] = ['active'];
+  async getJobsFromQueue(
+    name: string,
+    jobStatuses: Bull.JobStatus[],
+  ): Promise<Bull.Job[]> {
     const queue: Bull.Queue = new Bull(
       name,
       this.configService.get<string>('REDIS_CONNECTION_STRING'),
