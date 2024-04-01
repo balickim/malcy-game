@@ -207,7 +207,8 @@ export class RecruitService {
       bullSettlementRecruitmentQueueName(settlementId),
       this.configService.get<string>('REDIS_CONNECTION_STRING'),
     );
-    const job = await queue.getJob(jobId);
+    const job: Bull.Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
+    await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
     await job.discard();
     await job.moveToCompleted('', true, true);
     return 'success';
