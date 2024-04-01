@@ -1,3 +1,4 @@
+import { Max, Min } from 'class-validator';
 import { nanoid } from 'nanoid';
 import {
   Entity,
@@ -10,10 +11,14 @@ import {
   ManyToOne,
   GeoJSON,
   OneToOne,
+  Check,
 } from 'typeorm';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { UsersEntity } from '~/models/users/entities/users.entity';
+
+const maxGold = 4_000; // same as in configuration file
+const maxWood = 1_000; // same as in configuration file
 
 export enum SettlementType {
   village = 'village',
@@ -21,7 +26,14 @@ export enum SettlementType {
   city = 'city',
 }
 
+export enum ResourceType {
+  wood = 'wood',
+  gold = 'gold',
+}
+
 @Entity({ name: 'settlements' })
+@Check(`"gold" >= 0 AND "gold" <= ${maxGold}`)
+@Check(`"wood" >= 0 AND "wood" <= ${maxWood}`)
 export class SettlementsEntity {
   @PrimaryColumn()
   id: string;
@@ -42,6 +54,21 @@ export class SettlementsEntity {
     default: SettlementType.village,
   })
   type: SettlementType;
+
+  @Column({ default: 0 })
+  @Min(0)
+  @Max(maxGold)
+  gold: number;
+
+  @Column({ default: 0 })
+  @Min(0)
+  @Max(maxWood)
+  wood: number;
+
+  @Column({ default: 1, nullable: false })
+  @Min(1)
+  @Max(10)
+  resourcesMultiplicator: number;
 
   @ManyToOne(() => UsersEntity, (user) => user.settlements)
   user: UsersEntity;

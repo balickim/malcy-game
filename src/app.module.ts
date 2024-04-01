@@ -1,5 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 
 import { AppController } from '~/app.controller';
@@ -9,6 +10,7 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
 import { RecruitModule } from '~/models/recruit/recruit.module';
+import { ResourcesModule } from '~/models/resources/resources.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { UserLocationModule } from '~/models/user-location/user-location.module';
 import { UsersModule } from '~/models/users/users.module';
@@ -23,6 +25,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
       isGlobal: true,
       load: [config],
     }),
+    ScheduleModule.forRoot(),
     PostgresDatabaseProviderModule,
     CacheRedisProviderModule,
     QueueRedisProviderModule,
@@ -32,6 +35,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
     ArmiesModule,
     UserLocationModule,
     RecruitModule,
+    ResourcesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
