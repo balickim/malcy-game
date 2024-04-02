@@ -3,14 +3,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { QueuesManagerService } from '~/models/queues-manager/queues-manager.service';
-import { RecruitController } from '~/models/recruit/recruit.controller';
-import { RecruitService } from '~/models/recruit/recruit.service';
+import { RecruitmentsController } from '~/models/recruitments/recruitments.controller';
+import { RecruitmentsService } from '~/models/recruitments/recruitments.service';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/models/settlements/settlements.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ArmyEntity, SettlementsEntity])],
-  controllers: [RecruitController],
-  providers: [RecruitService, QueuesManagerService, SettlementsService],
+  controllers: [RecruitmentsController],
+  providers: [RecruitmentsService, QueuesManagerService, SettlementsService],
 })
-export class RecruitModule {}
+export class RecruitmentsModule {}

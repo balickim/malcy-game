@@ -10,13 +10,13 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 
 import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
-import { RequestRecruitmentDto } from '~/models/recruit/dtos/recruit.dto';
-import { RecruitService } from '~/models/recruit/recruit.service';
+import { RequestRecruitmentDto } from '~/models/recruitments/dtos/recruitments.dto';
+import { RecruitmentsService } from '~/models/recruitments/recruitments.service';
 
 @ApiTags('recruit')
 @Controller('recruit')
-export class RecruitController {
-  constructor(private readonly recruitService: RecruitService) {}
+export class RecruitmentsController {
+  constructor(private readonly recruitService: RecruitmentsService) {}
 
   @Post('/')
   async startRecruitment(

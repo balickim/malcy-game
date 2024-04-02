@@ -12,7 +12,7 @@ import { QueuesManagerService } from '~/models/queues-manager/queues-manager.ser
 import {
   RequestRecruitmentDto,
   ResponseRecruitmentDto,
-} from '~/models/recruit/dtos/recruit.dto';
+} from '~/models/recruitments/dtos/recruitments.dto';
 import { SettlementsService } from '~/models/settlements/settlements.service';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
@@ -25,8 +25,8 @@ const settlementRecruitmentProgressKey = (
 ) => `recruitmentProgress:${settlementId}:${unitType}:${jobId}`;
 
 @Injectable()
-export class RecruitService {
-  private readonly logger = new Logger(RecruitService.name);
+export class RecruitmentsService {
+  private readonly logger = new Logger(RecruitmentsService.name);
 
   constructor(
     @InjectRepository(ArmyEntity)

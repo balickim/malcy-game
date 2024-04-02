@@ -9,7 +9,7 @@ import config from '~/common/config/configuration';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/models/armies/armies.module';
 import { AuthModule } from '~/models/auth/auth.module';
-import { RecruitModule } from '~/models/recruit/recruit.module';
+import { RecruitmentsModule } from '~/models/recruitments/recruitments.module';
 import { ResourcesModule } from '~/models/resources/resources.module';
 import { SettlementsModule } from '~/models/settlements/settlements.module';
 import { UserLocationModule } from '~/models/user-location/user-location.module';
@@ -34,7 +34,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
     AuthModule,
     ArmiesModule,
     UserLocationModule,
-    RecruitModule,
+    RecruitmentsModule,
     ResourcesModule,
   ],
   controllers: [AppController],
