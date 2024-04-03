@@ -54,15 +54,15 @@ export class ResourcesService {
       .update(SettlementsEntity)
       .set({
         gold: () => `CASE 
-        WHEN "type" = 'village' AND gold + ${goldVillage} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
-        WHEN "type" = 'town' AND gold + ${goldTown} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
-        WHEN "type" = 'city' AND gold + ${goldCity} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
+        WHEN "type" = '${SettlementType.village}' AND gold + ${goldVillage} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
+        WHEN "type" = '${SettlementType.town}' AND gold + ${goldTown} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
+        WHEN "type" = '${SettlementType.city}' AND gold + ${goldCity} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
         ELSE LEAST(gold + ${goldVillage} * "resourcesMultiplicator", ${maxGold})
       END`,
         wood: () => `CASE 
-        WHEN "type" = 'village' AND wood + ${woodVillage} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
-        WHEN "type" = 'town' AND wood + ${woodTown} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
-        WHEN "type" = 'city' AND wood + ${woodCity} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
+        WHEN "type" = '${SettlementType.village}' AND wood + ${woodVillage} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
+        WHEN "type" = '${SettlementType.town}' AND wood + ${woodTown} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
+        WHEN "type" = '${SettlementType.city}' AND wood + ${woodCity} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
         ELSE LEAST(wood + ${woodCity} * "resourcesMultiplicator", ${maxWood})
       END`,
       })

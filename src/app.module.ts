@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
@@ -41,14 +41,15 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
   providers: [AppService],
 })
 export class AppModule implements OnModuleInit {
+  private readonly logger = new Logger(AppModule.name);
   constructor(private readonly dataSource: DataSource) {}
 
   async onModuleInit() {
     const hasPostGIS = await checkPostGISExtension(this.dataSource);
     if (!hasPostGIS) {
-      console.warn('PostGIS extension is not available in the database.');
+      this.logger.error('PostGIS extension is not available in the database.');
     } else {
-      console.log('PostGIS extension is available.');
+      this.logger.log('PostGIS extension is available.');
     }
   }
 }

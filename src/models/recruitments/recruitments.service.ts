@@ -1,5 +1,10 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Bull from 'bull';
@@ -25,30 +30,55 @@ const settlementRecruitmentProgressKey = (
 ) => `recruitmentProgress:${settlementId}:${unitType}:${jobId}`;
 
 @Injectable()
-export class RecruitmentsService {
+export class RecruitmentsService implements OnModuleInit {
   private readonly logger = new Logger(RecruitmentsService.name);
 
   constructor(
+    @InjectRedis()
+    private readonly redis: Redis,
     @InjectRepository(ArmyEntity)
     private armyRepository: Repository<ArmyEntity>,
     private queueService: QueuesManagerService,
-    @InjectRedis() private readonly redis: Redis,
     private settlementsService: SettlementsService,
     private configService: ConfigService,
   ) {}
 
-  // TODO assign processors to all active or waiting jobs after server restart
+  // Assigns processors to all active or waiting jobs after server restart
   // bull does not keep processors code in between restarts
-  // async onModuleInit() {
-  //   const queueNames =
-  //     await this.queueService.getAllSettlementRecruitmentQueueNames();
-  //
-  //   for (const queueName of queueNames) {
-  //     await this.queueService.generateQueue(queueName, this.recruitProcessor());
-  //   }
-  // }
+  async onModuleInit() {
+    const prefix = 'bull:recruitment:';
+    const queueNames = new Set<string>();
+    let cursor = '0';
 
-  async startRecruitment(recruitDto: RequestRecruitmentDto) {
+    do {
+      const reply = await this.redis.scan(
+        cursor,
+        'MATCH',
+        `${prefix}*`,
+        'COUNT',
+        '1000',
+      );
+      cursor = reply[0];
+      reply[1].forEach((key: string) => {
+        const match = key.match(/^(bull:recruitment:[^:]+)(?::[^:]+)?$/);
+        if (match && match[1]) {
+          queueNames.add(match[1].replace('bull:', ''));
+        }
+      });
+    } while (cursor !== '0');
+
+    this.logger.log(`Attaching processors to existing recruitment queues...`);
+    for (const queueName of queueNames) {
+      await this.queueService.generateQueue(queueName, this.recruitProcessor());
+    }
+    await Promise.all(
+      [...queueNames].map((queueName) =>
+        this.queueService.generateQueue(queueName, this.recruitProcessor()),
+      ),
+    );
+  }
+
+  public async startRecruitment(recruitDto: RequestRecruitmentDto) {
     const { type } = await this.settlementsService.getSettlementById(
       recruitDto.settlementId,
     );
@@ -91,11 +121,48 @@ export class RecruitmentsService {
     return job;
   }
 
-  recruitProcessor() {
+  public async cancelRecruitment(
+    settlementId: string,
+    jobId: string,
+    user: UsersEntity,
+  ) {
+    const settlement =
+      await this.settlementsService.getSettlementById(settlementId);
+    if (settlement.user.id !== user.id) throw new UnauthorizedException();
+
+    const queue: Bull.Queue = new Bull(
+      bullSettlementRecruitmentQueueName(settlementId),
+      this.configService.get<string>('REDIS_CONNECTION_STRING'),
+    );
+    const job: Bull.Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
+    await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
+    await job.discard();
+    await job.moveToCompleted('', true, true);
+    return 'success';
+  }
+
+  public async getUnfinishedJobsBySettlementId(settlementId: string) {
+    let jobs: Bull.Job<ResponseRecruitmentDto>[] =
+      await this.queueService.getJobsFromQueue(
+        bullSettlementRecruitmentQueueName(settlementId),
+        ['active', 'waiting'],
+      );
+
+    jobs = jobs.filter((job) => job !== null);
+    if (!jobs) {
+      this.logger.debug(`Jobs for settlement ${settlementId} not found.`);
+      return [];
+    }
+
+    return jobs;
+  }
+
+  private recruitProcessor() {
     return async (
       job: Bull.Job<ResponseRecruitmentDto>,
       done: Bull.DoneCallback,
     ) => {
+      console.log('recruitProcessor');
       const totalUnits = job.data.unitCount;
       const jobId = job.id;
       const unitRecruitTimeMs = job.data.unitRecruitmentTime;
@@ -124,7 +191,7 @@ export class RecruitmentsService {
     };
   }
 
-  async recruitUnit(
+  private async recruitUnit(
     recruitDto: RequestRecruitmentDto,
     jobId: Bull.JobId,
   ): Promise<boolean> {
@@ -152,23 +219,7 @@ export class RecruitmentsService {
     return true;
   }
 
-  async getUnfinishedJobsBySettlementId(settlementId: string) {
-    let jobs: Bull.Job<ResponseRecruitmentDto>[] =
-      await this.queueService.getJobsFromQueue(
-        bullSettlementRecruitmentQueueName(settlementId),
-        ['active', 'waiting'],
-      );
-
-    jobs = jobs.filter((job) => job !== null);
-    if (!jobs) {
-      this.logger.debug(`Jobs for settlement ${settlementId} not found.`);
-      return [];
-    }
-
-    return jobs;
-  }
-
-  async saveRecruitmentProgress(
+  private async saveRecruitmentProgress(
     recruitDto: RequestRecruitmentDto,
     jobId: number | string,
     progress: number,
@@ -181,7 +232,7 @@ export class RecruitmentsService {
     await this.redis.set(key, progress.toString(), 'EX', 60 * 60 * 24 * 7); // Expire after a week
   }
 
-  async getRecruitmentProgress(
+  private async getRecruitmentProgress(
     recruitDto: RequestRecruitmentDto,
     jobId: number | string,
   ): Promise<number> {
@@ -192,25 +243,5 @@ export class RecruitmentsService {
     );
     const progress = await this.redis.get(key);
     return progress ? parseInt(progress, 10) : 0;
-  }
-
-  async cancelRecruitment(
-    settlementId: string,
-    jobId: string,
-    user: UsersEntity,
-  ) {
-    const settlement =
-      await this.settlementsService.getSettlementById(settlementId);
-    if (settlement.user.id !== user.id) throw new UnauthorizedException();
-
-    const queue: Bull.Queue = new Bull(
-      bullSettlementRecruitmentQueueName(settlementId),
-      this.configService.get<string>('REDIS_CONNECTION_STRING'),
-    );
-    const job: Bull.Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
-    await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
-    await job.discard();
-    await job.moveToCompleted('', true, true);
-    return 'success';
   }
 }
