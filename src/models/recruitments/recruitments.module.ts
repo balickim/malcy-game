@@ -7,10 +7,16 @@ import { RecruitmentsController } from '~/models/recruitments/recruitments.contr
 import { RecruitmentsService } from '~/models/recruitments/recruitments.service';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/models/settlements/settlements.service';
+import { UserLocationService } from '~/models/user-location/user-location.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ArmyEntity, SettlementsEntity])],
   controllers: [RecruitmentsController],
-  providers: [RecruitmentsService, QueuesManagerService, SettlementsService],
+  providers: [
+    RecruitmentsService,
+    QueuesManagerService,
+    SettlementsService,
+    UserLocationService,
+  ],
 })
 export class RecruitmentsModule {}

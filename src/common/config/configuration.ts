@@ -22,7 +22,6 @@ export default () => ({
       [UnitType.archers]: 30_000, // 30 seconds
     },
   },
-
   SETTLEMENT_RESOURCE_MAX: {
     [ResourceType.gold]: 4_000, // Change these also in entities
     [ResourceType.wood]: 1_000, // Change these also in entities
@@ -41,6 +40,8 @@ export default () => ({
       [ResourceType.gold]: 18,
     },
   },
+  DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS: 30,
+  DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND: 30,
 
   JWT: {
     JWT_SECRET: process.env.JWT_SECRET,

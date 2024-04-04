@@ -6,12 +6,18 @@ import {
   Param,
   Post,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { IsWithinLocation } from '~/common/decorators/is-within-location.decorator';
 import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
 import { RequestRecruitmentDto } from '~/models/recruitments/dtos/recruitments.dto';
 import { RecruitmentsService } from '~/models/recruitments/recruitments.service';
+import {
+  IExpressRequestWithUserAndSettlement,
+  NearSettlementLocationGuard,
+} from '~/models/user-location/guards/near-settlement-location.guard';
 
 @ApiTags('recruit')
 @Controller('recruit')
@@ -19,11 +25,13 @@ export class RecruitmentsController {
   constructor(private readonly recruitService: RecruitmentsService) {}
 
   @Post('/')
+  @UseGuards(NearSettlementLocationGuard)
+  @IsWithinLocation('settlementId')
   async startRecruitment(
-    @Request() req: IExpressRequestWithUser,
+    @Request() req: IExpressRequestWithUserAndSettlement,
     @Body() recruitDto: RequestRecruitmentDto,
   ) {
-    return this.recruitService.startRecruitment(recruitDto);
+    return this.recruitService.startRecruitment(recruitDto, req.settlement);
   }
 
   @Get(':settlementId')

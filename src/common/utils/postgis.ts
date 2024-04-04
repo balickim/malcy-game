@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, GeoJSON } from 'typeorm';
 
 export async function checkPostGISExtension(
   dataSource: DataSource,
@@ -12,4 +12,16 @@ export async function checkPostGISExtension(
     console.error('Error checking PostGIS extension:', error);
     return false;
   }
+}
+
+export function convertGeoJSONToPoint(geoJson: GeoJSON): {
+  lat: number;
+  lng: number;
+} {
+  if (geoJson.type !== 'Point' || geoJson.coordinates.length !== 2) {
+    throw new Error('Invalid GeoJSON Point');
+  }
+
+  const [lng, lat] = geoJson.coordinates;
+  return { lat, lng };
 }

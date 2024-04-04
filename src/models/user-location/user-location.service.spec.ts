@@ -28,36 +28,31 @@ describe('UserLocationService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('checkProximity', () => {
+  describe('updateLocation', () => {
     it('should return true if there is no previous location', async () => {
-      redisMock.geopos.mockResolvedValue([null]);
+      redisMock.hget.mockResolvedValue('1712246951753');
 
-      const result = await service.checkProximity({
-        userId: 'user1',
-        currentLatitude: 1.0,
-        currentLongitude: 1.0,
-        radius: 100,
+      const result = await service.updateLocation({
+        userId: 'testUserId',
+        location: { lat: 1.0, lng: 1.0 },
       });
 
-      expect(result).toBe(true);
+      expect(result).toBe('success');
     });
 
     it('should correctly mock geopos method', async () => {
-      redisMock.geopos.mockResolvedValue([[1.0, 2.0]]);
+      // redisMock.geopos.mockResolvedValue([[1.0, 2.0]]);
       redisMock.hget.mockResolvedValue('1234567890');
       redisMock.geodist.mockResolvedValue('100');
-      const proximityCheck = await service.checkProximity({
+      await service.updateLocation({
         userId: 'testUserId',
-        currentLatitude: 1.0,
-        currentLongitude: 2.0,
-        radius: 100,
+        location: { lat: 1.0, lng: 1.0 },
       });
 
-      expect(proximityCheck).toBe(true);
-      expect(redisMock.geopos).toHaveBeenCalledWith(
-        'userLocations',
-        'testUserId',
-      );
+      // expect(redisMock.geopos).toHaveBeenCalledWith(
+      //   'userLocations',
+      //   'testUserId',
+      // );
       expect(redisMock.hget).toHaveBeenCalledWith(
         'user:location:timestamp',
         'testUserId',

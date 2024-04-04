@@ -18,7 +18,9 @@ import {
   RequestRecruitmentDto,
   ResponseRecruitmentDto,
 } from '~/models/recruitments/dtos/recruitments.dto';
+import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/models/settlements/settlements.service';
+import { UserLocationService } from '~/models/user-location/user-location.service';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
 const bullSettlementRecruitmentQueueName = (settlementId: string) =>
@@ -40,6 +42,7 @@ export class RecruitmentsService implements OnModuleInit {
     private armyRepository: Repository<ArmyEntity>,
     private queueService: QueuesManagerService,
     private settlementsService: SettlementsService,
+    private userLocationService: UserLocationService,
     private configService: ConfigService,
   ) {}
 
@@ -78,12 +81,12 @@ export class RecruitmentsService implements OnModuleInit {
     );
   }
 
-  public async startRecruitment(recruitDto: RequestRecruitmentDto) {
-    const { type } = await this.settlementsService.getSettlementById(
-      recruitDto.settlementId,
-    );
+  public async startRecruitment(
+    recruitDto: RequestRecruitmentDto,
+    settlement: SettlementsEntity,
+  ) {
     const unitRecruitmentTime = this.configService.get<number>(
-      `RECRUITMENT_TIMES_MS.${type}.${recruitDto.unitType}`,
+      `RECRUITMENT_TIMES_MS.${settlement.type}.${recruitDto.unitType}`,
     );
 
     const unfinishedJobs = await this.getUnfinishedJobsBySettlementId(
@@ -112,6 +115,7 @@ export class RecruitmentsService implements OnModuleInit {
       this.recruitProcessor(),
     );
     const job: Bull.Job<ResponseRecruitmentDto> = await queue.add(data, {
+      delay: totalDelayMs,
       removeOnComplete: true,
       removeOnFail: true,
     });
@@ -145,7 +149,7 @@ export class RecruitmentsService implements OnModuleInit {
     let jobs: Bull.Job<ResponseRecruitmentDto>[] =
       await this.queueService.getJobsFromQueue(
         bullSettlementRecruitmentQueueName(settlementId),
-        ['active', 'waiting'],
+        ['active', 'waiting', 'delayed'],
       );
 
     jobs = jobs.filter((job) => job !== null);
@@ -162,7 +166,6 @@ export class RecruitmentsService implements OnModuleInit {
       job: Bull.Job<ResponseRecruitmentDto>,
       done: Bull.DoneCallback,
     ) => {
-      console.log('recruitProcessor');
       const totalUnits = job.data.unitCount;
       const jobId = job.id;
       const unitRecruitTimeMs = job.data.unitRecruitmentTime;
