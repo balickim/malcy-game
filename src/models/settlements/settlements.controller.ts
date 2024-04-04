@@ -11,7 +11,6 @@ import { ApiTags } from '@nestjs/swagger';
 
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
 import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
-import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 
 import { SettlementsService } from './settlements.service';
 
@@ -46,7 +45,7 @@ export class SettlementsController {
   @Post('/')
   async createSettlement(
     @Request() req: IExpressRequestWithUser,
-    @Body() settlementData: SettlementsDto,
+    @Body() settlementData: { name: string },
   ) {
     return this.settlementsService.createSettlement(settlementData, req.user);
   }

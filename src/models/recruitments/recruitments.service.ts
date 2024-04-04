@@ -20,7 +20,6 @@ import {
 } from '~/models/recruitments/dtos/recruitments.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/models/settlements/settlements.service';
-import { UserLocationService } from '~/models/user-location/user-location.service';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
 const bullSettlementRecruitmentQueueName = (settlementId: string) =>
@@ -42,7 +41,6 @@ export class RecruitmentsService implements OnModuleInit {
     private armyRepository: Repository<ArmyEntity>,
     private queueService: QueuesManagerService,
     private settlementsService: SettlementsService,
-    private userLocationService: UserLocationService,
     private configService: ConfigService,
   ) {}
 

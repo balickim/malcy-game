@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
+import { UserLocationService } from '~/models/user-location/user-location.service';
 import { UsersEntity } from '~/models/users/entities/users.entity';
 
 @Injectable()
@@ -13,18 +14,21 @@ export class SettlementsService {
   constructor(
     @InjectRepository(SettlementsEntity)
     private settlementsEntityRepository: Repository<SettlementsEntity>,
+    private userLocationService: UserLocationService,
   ) {}
 
-  async createSettlement(settlementData: SettlementsDto, user: UsersEntity) {
-    const { lat, lng, name } = settlementData;
+  async createSettlement(settlementData: { name: string }, user: UsersEntity) {
+    const userLocation = await this.userLocationService.getUserLocation({
+      userId: user.id,
+    });
 
     const locationGeoJSON: GeoJSON.Point = {
       type: 'Point',
-      coordinates: [lng, lat],
+      coordinates: [userLocation.lng, userLocation.lat],
     };
 
     const newSettlement = this.settlementsEntityRepository.create({
-      name: name,
+      name: settlementData.name,
       location: locationGeoJSON,
       user,
     });

@@ -52,8 +52,10 @@ export class UserLocationService {
   }
 
   public async getUserLocation(params: { userId: string }) {
-    const userLocation = this.redis.geopos(userLocationsKey, params.userId);
-    return !userLocation[0];
+    const [lng, lat] = (
+      await this.redis.geopos(userLocationsKey, params.userId)
+    )[0];
+    return { lat: Number(lat), lng: Number(lng) };
   }
 
   public async isUserWithinRadius(params: {

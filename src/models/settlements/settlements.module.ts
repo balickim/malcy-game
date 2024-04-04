@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArmyEntity } from '~/models/armies/entities/armies.entity';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { SettlementsSubscriber } from '~/models/settlements/settlements.subscriber';
+import { UserLocationService } from '~/models/user-location/user-location.service';
 
 import { Settlements } from './settlements';
 import { SettlementsController } from './settlements.controller';
@@ -18,6 +19,7 @@ import { SettlementsService } from './settlements.service';
     SettlementsGateway,
     Settlements,
     SettlementsSubscriber,
+    UserLocationService,
   ],
 })
 export class SettlementsModule {}
