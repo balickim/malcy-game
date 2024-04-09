@@ -1,10 +1,9 @@
 {
   "name": "malcy-backend",
-  "version": "0.1.10",
+  "version": "0.1.13",
   "description": "",
-  "author": "",
+  "author": "balickim",
   "private": true,
-  "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

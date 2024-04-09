@@ -23,6 +23,8 @@ export class UsersSubscriber implements EntitySubscriberInterface<UsersEntity> {
 
     const army = new ArmyEntity();
     army.user = event.entity;
+    army.knights = 0;
+    army.archers = 0;
     await event.manager.save(ArmyEntity, army);
   }
 }

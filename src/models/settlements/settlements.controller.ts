@@ -6,11 +6,19 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
+import { IsWithinLocation } from '~/common/decorators/is-within-location.decorator';
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
 import { IExpressRequestWithUser } from '~/models/auth/guards/jwt.guard';
+import PickUpArmyDto from '~/models/settlements/dtos/pickUpArmy.dto';
+import PutDownArmyDto from '~/models/settlements/dtos/putDownArmy.dto';
+import {
+  IExpressRequestWithUserAndSettlement,
+  NearSettlementLocationGuard,
+} from '~/models/user-location/guards/near-settlement-location.guard';
 
 import { SettlementsService } from './settlements.service';
 
@@ -59,5 +67,27 @@ export class SettlementsController {
       params.id,
       req.user,
     );
+  }
+
+  @Post('/pick-up-army')
+  @UseGuards(NearSettlementLocationGuard)
+  @IsWithinLocation('settlementId')
+  @ResponseMessage('Army transferred successfully')
+  async pickUpArmy(
+    @Request() req: IExpressRequestWithUserAndSettlement,
+    @Body() pickUpArmyDto: PickUpArmyDto,
+  ) {
+    return this.settlementsService.pickUpArmy(pickUpArmyDto, req.settlement);
+  }
+
+  @Post('/put-down-army')
+  @UseGuards(NearSettlementLocationGuard)
+  @IsWithinLocation('settlementId')
+  @ResponseMessage('Army transferred successfully')
+  async putDownArmy(
+    @Request() req: IExpressRequestWithUserAndSettlement,
+    @Body() putDownArmyDto: PutDownArmyDto,
+  ) {
+    return this.settlementsService.putDownArmy(putDownArmyDto, req.settlement);
   }
 }

@@ -2,6 +2,9 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { ArmyEntity } from '~/models/armies/entities/armies.entity';
+import PickUpArmyDto from '~/models/settlements/dtos/pickUpArmy.dto';
+import PutDownArmyDto from '~/models/settlements/dtos/putDownArmy.dto';
 import { SettlementsDto } from '~/models/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/models/user-location/user-location.service';
@@ -14,6 +17,8 @@ export class SettlementsService {
   constructor(
     @InjectRepository(SettlementsEntity)
     private settlementsEntityRepository: Repository<SettlementsEntity>,
+    @InjectRepository(ArmyEntity)
+    private armyEntityRepository: Repository<ArmyEntity>,
     private userLocationService: UserLocationService,
   ) {}
 
@@ -107,11 +112,83 @@ export class SettlementsService {
   async getSettlementById(id: string) {
     const settlement = await this.settlementsEntityRepository.findOne({
       where: { id },
-      relations: ['user'],
+      relations: ['user', 'army'],
     });
     if (!settlement)
       throw new NotFoundException(`Settlement not found with ID: ${id}`);
 
     return settlement;
+  }
+
+  async pickUpArmy(
+    pickUpArmyDto: PickUpArmyDto,
+    settlement: SettlementsEntity,
+  ) {
+    if (
+      settlement.army.knights < pickUpArmyDto.knights ||
+      settlement.army.archers < pickUpArmyDto.archers
+    ) {
+      throw new Error('Not enough troops in the settlement');
+    }
+
+    settlement.army.knights -= pickUpArmyDto.knights;
+    settlement.army.archers -= pickUpArmyDto.archers;
+
+    const userArmy = await this.armyEntityRepository.findOne({
+      where: { userId: settlement.user.id },
+    });
+
+    userArmy.knights += pickUpArmyDto.knights;
+    userArmy.archers += pickUpArmyDto.archers;
+
+    await this.armyEntityRepository.save(settlement.army);
+    await this.armyEntityRepository.save(userArmy);
+
+    return {
+      userArmy: {
+        knights: userArmy.knights,
+        archers: userArmy.archers,
+      },
+      settlementArmy: {
+        knights: settlement.army.knights,
+        archers: settlement.army.archers,
+      },
+    };
+  }
+
+  async putDownArmy(
+    putDownArmyDto: PutDownArmyDto,
+    settlement: SettlementsEntity,
+  ) {
+    const userArmy = await this.armyEntityRepository.findOne({
+      where: { userId: settlement.user.id },
+    });
+
+    if (
+      userArmy.knights < putDownArmyDto.knights ||
+      userArmy.archers < putDownArmyDto.archers
+    ) {
+      throw new Error('Not enough troops in the user army');
+    }
+
+    userArmy.knights -= putDownArmyDto.knights;
+    userArmy.archers -= putDownArmyDto.archers;
+
+    settlement.army.knights += putDownArmyDto.knights;
+    settlement.army.archers += putDownArmyDto.archers;
+
+    await this.armyEntityRepository.save(settlement.army);
+    await this.armyEntityRepository.save(userArmy);
+
+    return {
+      userArmy: {
+        knights: userArmy.knights,
+        archers: userArmy.archers,
+      },
+      settlementArmy: {
+        knights: settlement.army.knights,
+        archers: settlement.army.archers,
+      },
+    };
   }
 }
