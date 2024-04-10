@@ -19,8 +19,8 @@ import {
   NearSettlementLocationGuard,
 } from '~/models/user-location/guards/near-settlement-location.guard';
 
-@ApiTags('recruit')
-@Controller('recruit')
+@ApiTags('recruitments')
+@Controller('recruitments')
 export class RecruitmentsController {
   constructor(private readonly recruitService: RecruitmentsService) {}
 
@@ -36,7 +36,9 @@ export class RecruitmentsController {
 
   @Get(':settlementId')
   async getUnfinishedJobs(@Param('settlementId') settlementId: string) {
-    return this.recruitService.getUnfinishedJobsBySettlementId(settlementId);
+    return this.recruitService.getUnfinishedRecruitmentsBySettlementId(
+      settlementId,
+    );
   }
 
   @Delete(':settlementId/:jobId')

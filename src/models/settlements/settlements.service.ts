@@ -128,7 +128,7 @@ export class SettlementsService {
       settlement.army.knights < pickUpArmyDto.knights ||
       settlement.army.archers < pickUpArmyDto.archers
     ) {
-      throw new Error('Not enough troops in the settlement');
+      throw new NotFoundException('Not enough troops in the settlement');
     }
 
     settlement.army.knights -= pickUpArmyDto.knights;
@@ -168,7 +168,7 @@ export class SettlementsService {
       userArmy.knights < putDownArmyDto.knights ||
       userArmy.archers < putDownArmyDto.archers
     ) {
-      throw new Error('Not enough troops in the user army');
+      throw new NotFoundException('Not enough troops in the user army');
     }
 
     userArmy.knights -= putDownArmyDto.knights;

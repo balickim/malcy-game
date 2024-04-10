@@ -87,7 +87,7 @@ export class RecruitmentsService implements OnModuleInit {
       `RECRUITMENT_TIMES_MS.${settlement.type}.${recruitDto.unitType}`,
     );
 
-    const unfinishedJobs = await this.getUnfinishedJobsBySettlementId(
+    const unfinishedJobs = await this.getUnfinishedRecruitmentsBySettlementId(
       recruitDto.settlementId,
     );
     let totalDelayMs = 0;
@@ -143,7 +143,7 @@ export class RecruitmentsService implements OnModuleInit {
     return 'success';
   }
 
-  public async getUnfinishedJobsBySettlementId(settlementId: string) {
+  public async getUnfinishedRecruitmentsBySettlementId(settlementId: string) {
     let jobs: Bull.Job<ResponseRecruitmentDto>[] =
       await this.queueService.getJobsFromQueue(
         bullSettlementRecruitmentQueueName(settlementId),
