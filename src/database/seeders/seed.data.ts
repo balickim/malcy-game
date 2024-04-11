@@ -9,7 +9,7 @@ import { UsersEntity } from '~/modules/users/entities/users.entity';
 async function createUser(usersRepository: Repository<UsersEntity>) {
   const hashedPassword = await bcrypt.hash('password', 10);
   const user = new UsersEntity();
-  user.nick = faker.internet.userName();
+  user.username = faker.internet.userName();
   user.email = faker.internet.email();
   user.password = hashedPassword;
 

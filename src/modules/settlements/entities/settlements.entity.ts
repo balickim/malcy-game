@@ -5,9 +5,6 @@ import {
   PrimaryColumn,
   Column,
   BeforeInsert,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
   ManyToOne,
   GeoJSON,
   OneToOne,
@@ -15,6 +12,7 @@ import {
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 const maxGold = 4_000; // same as in configuration file
@@ -34,7 +32,7 @@ export enum ResourceType {
 @Entity({ name: 'settlements' })
 @Check(`"gold" >= 0 AND "gold" <= ${maxGold}`)
 @Check(`"wood" >= 0 AND "wood" <= ${maxWood}`)
-export class SettlementsEntity {
+export class SettlementsEntity extends AuditableBaseEntity {
   @PrimaryColumn()
   id: string;
 
@@ -75,15 +73,6 @@ export class SettlementsEntity {
 
   @OneToOne(() => ArmyEntity, (army) => army.settlement)
   army: ArmyEntity;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @BeforeInsert()
   generateId() {

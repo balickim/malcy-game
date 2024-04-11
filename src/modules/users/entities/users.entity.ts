@@ -4,29 +4,27 @@ import {
   BeforeInsert,
   Check,
   Column,
-  CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   OneToMany,
   OneToOne,
   PrimaryColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 
 @Entity({ name: 'users' })
 @Check(`"gold" >= 0 AND "gold" <= 100000`)
 @Check(`"wood" >= 0 AND "wood" <= 80000`)
-export class UsersEntity {
+export class UsersEntity extends AuditableBaseEntity {
   @PrimaryColumn()
   id: string;
 
   @IsOptional()
   @IsEmail()
   @Column({ unique: true, nullable: false })
-  nick: string;
+  username: string;
 
   @Column({ unique: true, nullable: false })
   email: string;
@@ -49,15 +47,6 @@ export class UsersEntity {
 
   @OneToOne(() => ArmyEntity, (army) => army.user)
   army: ArmyEntity;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @BeforeInsert()
   generateId() {

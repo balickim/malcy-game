@@ -2,15 +2,13 @@ import { nanoid } from 'nanoid';
 import {
   BeforeInsert,
   Column,
-  CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
   PrimaryColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 
+import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
@@ -20,7 +18,7 @@ export enum UnitType {
 }
 
 @Entity({ name: 'armies' })
-export class ArmyEntity {
+export class ArmyEntity extends AuditableBaseEntity {
   @PrimaryColumn()
   id: string;
 
@@ -43,15 +41,6 @@ export class ArmyEntity {
   @OneToOne(() => SettlementsEntity, (settlement) => settlement.army)
   @JoinColumn({ name: 'settlementId' })
   settlement: SettlementsEntity;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt?: Date;
 
   @BeforeInsert()
   generateId() {

@@ -38,7 +38,13 @@ export class SettlementsService {
       user,
     });
 
-    return this.settlementsEntityRepository.save(newSettlement);
+    try {
+      const settlement =
+        await this.settlementsEntityRepository.save(newSettlement);
+      this.logger.log(`CREATED NEW SETTLEMENT WITH ID: ${settlement.id}`);
+    } catch (error) {
+      this.logger.log(`CREATED NEW SETTLEMENT FAILED: --${error}--`);
+    }
   }
 
   async findSettlementsInBounds(
@@ -77,7 +83,7 @@ export class SettlementsService {
           lat: result.lat,
           user: {
             id: result.user_id,
-            nick: result.user_nick,
+            username: result.user_username,
             email: result.user_email,
             createdAt: result.user_createdAt,
             updatedAt: result.user_updatedAt,

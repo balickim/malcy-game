@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterRequestDto {
   @ApiProperty()
-  nick: string;
+  username: string;
 
   @ApiProperty()
   email: string;

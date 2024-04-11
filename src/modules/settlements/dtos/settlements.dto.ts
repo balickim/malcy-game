@@ -11,7 +11,7 @@ export class SettlementsDto {
     deletedAt: string | null;
     email: string;
     id: string;
-    nick: string;
+    username: string;
     updatedAt: string;
   };
 }

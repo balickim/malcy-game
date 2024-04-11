@@ -31,7 +31,7 @@ export class AuthService {
   }
 
   private async generateToken(user: UsersEntity): Promise<Tokens> {
-    const payload = { id: user.id, email: user.email, nick: user.nick };
+    const payload = { id: user.id, email: user.email, username: user.username };
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.configService.getOrThrow('JWT.ACCESS_TOKEN_EXPIRES_IN'),
     });
@@ -55,7 +55,7 @@ export class AuthService {
     }
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const newUser = new UsersEntity();
-    newUser.nick = user.nick;
+    newUser.username = user.username;
     newUser.email = user.email;
     newUser.password = hashedPassword;
     await this.usersService.create(newUser);
