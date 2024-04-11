@@ -2,9 +2,9 @@ import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import { DataSource, Repository } from 'typeorm';
 
-import { ArmyEntity } from '~/models/armies/entities/armies.entity';
-import { SettlementsEntity } from '~/models/settlements/entities/settlements.entity';
-import { UsersEntity } from '~/models/users/entities/users.entity';
+import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
+import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 async function createUser(usersRepository: Repository<UsersEntity>) {
   const hashedPassword = await bcrypt.hash('password', 10);

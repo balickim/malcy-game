@@ -1,8 +1,8 @@
-import { UnitType } from '~/models/armies/entities/armies.entity';
+import { UnitType } from '~/modules/armies/entities/armies.entity';
 import {
   ResourceType,
   SettlementType,
-} from '~/models/settlements/entities/settlements.entity';
+} from '~/modules/settlements/entities/settlements.entity';
 
 export default () => ({
   FE_APP_HOST: process.env.FE_APP_HOST,

@@ -5,7 +5,7 @@ import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from '~/app.module';
 import { TransformInterceptor } from '~/common/interceptors/response.interceptor';
-import { JwtGuard } from '~/models/auth/guards/jwt.guard';
+import { JwtGuard } from '~/modules/auth/guards/jwt.guard';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cors = require('cors');
