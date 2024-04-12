@@ -6,7 +6,7 @@ import {
 } from 'typeorm';
 
 @EventSubscriber()
-export class AuditLogSubscriber implements EntitySubscriberInterface {
+export class EventLogSubscriber implements EntitySubscriberInterface {
   beforeInsert(event: InsertEvent<any>) {
     event.entity.createdBy = event.entity?.user?.id;
     event.entity.updatedBy = event.entity?.user?.id;

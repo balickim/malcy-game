@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ActionType } from '~/modules/event-log/entities/event-log.entity';
+import { EventLogService } from '~/modules/event-log/event-log.service';
 import PickUpArmyDto from '~/modules/settlements/dtos/pickUpArmy.dto';
 import PutDownArmyDto from '~/modules/settlements/dtos/putDownArmy.dto';
 import { SettlementsDto } from '~/modules/settlements/dtos/settlements.dto';
@@ -20,6 +22,7 @@ export class SettlementsService {
     @InjectRepository(ArmyEntity)
     private armyEntityRepository: Repository<ArmyEntity>,
     private userLocationService: UserLocationService,
+    private eventLogService: EventLogService,
   ) {}
 
   async createSettlement(settlementData: { name: string }, user: UsersEntity) {
@@ -42,6 +45,14 @@ export class SettlementsService {
       const settlement =
         await this.settlementsEntityRepository.save(newSettlement);
       this.logger.log(`CREATED NEW SETTLEMENT WITH ID: ${settlement.id}`);
+      this.eventLogService
+        .logEvent({
+          actionType: ActionType.settlementCreated,
+          actionByUserId: user.id,
+        })
+        .catch((error) =>
+          this.logger.error(`FAILED TO LOG EVENT --${error}--`),
+        );
     } catch (error) {
       this.logger.log(`CREATED NEW SETTLEMENT FAILED: --${error}--`);
     }

@@ -1,8 +1,10 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { WsException } from '@nestjs/websockets';
 import Redis from 'ioredis';
+
+import { ActionType } from '~/modules/event-log/entities/event-log.entity';
+import { EventLogService } from '~/modules/event-log/event-log.service';
 
 interface LatLng {
   lat: number;
@@ -18,9 +20,12 @@ const userLocationsKey = 'user:locations';
 const userLocationTimestampKey = 'user:location:timestamp';
 @Injectable()
 export class UserLocationService {
+  private readonly logger = new Logger(UserLocationService.name);
+
   constructor(
     @InjectRedis() private readonly redis: Redis,
     private configService: ConfigService,
+    private eventLogService: EventLogService,
   ) {}
 
   public async updateLocation(params: IUpdateLocationParams) {
@@ -31,9 +36,12 @@ export class UserLocationService {
     });
 
     if (!isUserSpeedWithinLimit) {
-      throw new WsException(
-        'User has moved too far too quickly. This new position will not be registered and now is out of sync with the server.',
-      );
+      this.logger.warn(`USER MOVED TOO FAR TOO QUICKLY ID: ${params.userId}`);
+      await this.eventLogService.logEvent({
+        actionType: ActionType.securityIncident,
+        actionByUserId: params.userId,
+        description: 'User moved too far too quickly',
+      });
     }
 
     await this.redis.geoadd(

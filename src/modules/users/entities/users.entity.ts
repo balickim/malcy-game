@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
-import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
+import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 
 @Entity({ name: 'users' })
@@ -22,10 +22,10 @@ export class UsersEntity extends AuditableBaseEntity {
   id: string;
 
   @IsOptional()
-  @IsEmail()
   @Column({ unique: true, nullable: false })
   username: string;
 
+  @IsEmail()
   @Column({ unique: true, nullable: false })
   email: string;
 

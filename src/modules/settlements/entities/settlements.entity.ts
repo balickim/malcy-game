@@ -12,7 +12,7 @@ import {
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
-import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
+import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 const maxGold = 4_000; // same as in configuration file

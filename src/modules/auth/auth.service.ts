@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 
 import { RegisterRequestDto } from '~/modules/auth/dtos/register-request.dto';
 import { Tokens } from '~/modules/auth/types/Tokens';
+import { ActionType } from '~/modules/event-log/entities/event-log.entity';
+import { EventLogService } from '~/modules/event-log/event-log.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 import { UsersService } from '~/modules/users/users.service';
 
@@ -16,6 +18,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private eventLogService: EventLogService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<UsersEntity> {
@@ -59,6 +62,13 @@ export class AuthService {
     newUser.email = user.email;
     newUser.password = hashedPassword;
     await this.usersService.create(newUser);
+    this.logger.log(`USER REGISTERED id: ${newUser.id}`);
+    this.eventLogService
+      .logEvent({
+        actionType: ActionType.userRegistered,
+        actionByUserId: newUser.id,
+      })
+      .catch((error) => this.logger.error(`FAILED TO LOG EVENT --${error}--`));
     return this.login(newUser);
   }
 

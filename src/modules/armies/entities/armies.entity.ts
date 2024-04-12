@@ -8,7 +8,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 
-import { AuditableBaseEntity } from '~/modules/audit-log/entities/auditable-base.entity';
+import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 

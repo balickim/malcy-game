@@ -8,8 +8,8 @@ import { AppService } from '~/app.service';
 import config from '~/common/config/configuration';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/modules/armies/armies.module';
-import { AuditLogModule } from '~/modules/audit-log/audit-log.module';
 import { AuthModule } from '~/modules/auth/auth.module';
+import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { RecruitmentsModule } from '~/modules/recruitments/recruitments.module';
 import { ResourcesModule } from '~/modules/resources/resources.module';
 import { SettlementsModule } from '~/modules/settlements/settlements.module';
@@ -37,7 +37,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
     UserLocationModule,
     RecruitmentsModule,
     ResourcesModule,
-    AuditLogModule,
+    EventLogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

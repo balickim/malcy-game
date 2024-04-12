@@ -3,8 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
-import { AuditLogModule } from '~/modules/audit-log/audit-log.module';
-import { AuditLogSubscriber } from '~/modules/audit-log/audit-log.subscriber';
+import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
+import { EventLogModule } from '~/modules/event-log/event-log.module';
+import { EventLogSubscriber } from '~/modules/event-log/event-log.subscriber';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsModule } from '~/modules/settlements/settlements.module';
 import { UserLocationModule } from '~/modules/user-location/user-location.module';
@@ -19,7 +20,7 @@ import { UsersModule } from '~/modules/users/users.module';
         SettlementsModule,
         UsersModule,
         UserLocationModule,
-        AuditLogModule,
+        EventLogModule,
       ],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -33,8 +34,13 @@ import { UsersModule } from '~/modules/users/users.module';
           migrations: [],
           migrationsTableName: 'typeorm_migrations',
           synchronize: configService.get('DATABASE.SYNCHRONIZE'),
-          entities: [UsersEntity, SettlementsEntity, ArmyEntity],
-          subscribers: [AuditLogSubscriber],
+          entities: [
+            UsersEntity,
+            SettlementsEntity,
+            ArmyEntity,
+            EventLogEntity,
+          ],
+          subscribers: [EventLogSubscriber],
         };
       },
     } as TypeOrmModuleAsyncOptions),
