@@ -22,7 +22,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.development.local', '.env.production.local'],
+      envFilePath: ['.env'],
       isGlobal: true,
       load: [config],
     }),
