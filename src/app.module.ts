@@ -1,14 +1,13 @@
 import { Logger, Module, OnModuleInit } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 
 import { AppController } from '~/app.controller';
 import { AppService } from '~/app.service';
-import config from '~/common/config/configuration';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/modules/armies/armies.module';
 import { AuthModule } from '~/modules/auth/auth.module';
+import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { RecruitmentsModule } from '~/modules/recruitments/recruitments.module';
 import { ResourcesModule } from '~/modules/resources/resources.module';
@@ -21,11 +20,7 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      envFilePath: ['.env'],
-      isGlobal: true,
-      load: [config],
-    }),
+    ConfigModule,
     ScheduleModule.forRoot(),
     PostgresDatabaseProviderModule,
     CacheRedisProviderModule,

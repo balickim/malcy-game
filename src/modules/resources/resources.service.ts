@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { ConfigService } from '~/modules/config/config.service';
 import {
   ResourceType,
   SettlementsEntity,
-  SettlementType,
+  SettlementTypes,
 } from '~/modules/settlements/entities/settlements.entity';
 
 @Injectable()
@@ -20,50 +20,96 @@ export class ResourcesService {
     private configService: ConfigService,
   ) {}
 
-  getBaseValue(settlementType: SettlementType, resourceType: ResourceType) {
-    return this.configService.get<number>(
-      `SETTLEMENT_RESOURCE_GENERATION_BASE_VALUE.${settlementType}.${resourceType}`,
-    );
+  getBaseValue(settlementType: SettlementTypes, resourceType: ResourceType) {
+    return this.configService.gameConfig.SETTLEMENT[settlementType]
+      .RESOURCE_GENERATION_BASE[resourceType];
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
   async updateResources() {
     this.logger.log('Distributing resources to settlements...');
 
-    const goldVillage = this.getBaseValue(
-      SettlementType.village,
+    const goldMiningTown = this.getBaseValue(
+      SettlementTypes.MINING_TOWN,
       ResourceType.gold,
     );
-    const goldTown = this.getBaseValue(SettlementType.town, ResourceType.gold);
-    const goldCity = this.getBaseValue(SettlementType.city, ResourceType.gold);
-    const woodVillage = this.getBaseValue(
-      SettlementType.village,
+    const goldCastleTown = this.getBaseValue(
+      SettlementTypes.CASTLE_TOWN,
+      ResourceType.gold,
+    );
+    const goldFortifiedSettlement = this.getBaseValue(
+      SettlementTypes.FORTIFIED_SETTLEMENT,
+      ResourceType.gold,
+    );
+    const goldCapitolSettlement = this.getBaseValue(
+      SettlementTypes.CAPITOL_SETTLEMENT,
+      ResourceType.gold,
+    );
+
+    const woodMiningTown = this.getBaseValue(
+      SettlementTypes.MINING_TOWN,
       ResourceType.wood,
     );
-    const woodTown = this.getBaseValue(SettlementType.town, ResourceType.wood);
-    const woodCity = this.getBaseValue(SettlementType.city, ResourceType.wood);
-    const maxGold = this.configService.get<number>(
-      `SETTLEMENT_RESOURCE_MAX.${ResourceType.gold}`,
+    const woodCastleTown = this.getBaseValue(
+      SettlementTypes.CASTLE_TOWN,
+      ResourceType.wood,
     );
-    const maxWood = this.configService.get<number>(
-      `SETTLEMENT_RESOURCE_MAX.${ResourceType.wood}`,
+    const woodFortifiedSettlement = this.getBaseValue(
+      SettlementTypes.FORTIFIED_SETTLEMENT,
+      ResourceType.wood,
     );
+    const woodCapitolSettlement = this.getBaseValue(
+      SettlementTypes.CAPITOL_SETTLEMENT,
+      ResourceType.wood,
+    );
+
+    const maxGoldMiningTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypes.MINING_TOWN]
+        .RESOURCES_CAP[ResourceType.gold];
+    const maxGoldCastleTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypes.CASTLE_TOWN]
+        .RESOURCES_CAP[ResourceType.gold];
+    const maxGoldFortifiedSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypes.FORTIFIED_SETTLEMENT
+      ].RESOURCES_CAP[ResourceType.gold];
+    const maxGoldCapitolSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypes.CAPITOL_SETTLEMENT
+      ].RESOURCES_CAP[ResourceType.gold];
+
+    const maxWoodMiningTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypes.MINING_TOWN]
+        .RESOURCES_CAP[ResourceType.wood];
+    const maxWoodCastleTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypes.CASTLE_TOWN]
+        .RESOURCES_CAP[ResourceType.wood];
+    const maxWoodFortifiedSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypes.FORTIFIED_SETTLEMENT
+      ].RESOURCES_CAP[ResourceType.wood];
+    const maxWoodCapitolSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypes.CAPITOL_SETTLEMENT
+      ].RESOURCES_CAP[ResourceType.wood];
 
     const query = this.settlementsEntityRepository
       .createQueryBuilder()
       .update(SettlementsEntity)
       .set({
         gold: () => `CASE 
-        WHEN "type" = '${SettlementType.village}' AND gold + ${goldVillage} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
-        WHEN "type" = '${SettlementType.town}' AND gold + ${goldTown} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
-        WHEN "type" = '${SettlementType.city}' AND gold + ${goldCity} * "resourcesMultiplicator" > ${maxGold} THEN ${maxGold}
-        ELSE LEAST(gold + ${goldVillage} * "resourcesMultiplicator", ${maxGold})
+        WHEN "type" = '${SettlementTypes.MINING_TOWN}' AND gold + ${goldMiningTown} * "resourcesMultiplicator" > ${maxGoldMiningTown} THEN ${maxGoldMiningTown}
+        WHEN "type" = '${SettlementTypes.CASTLE_TOWN}' AND gold + ${goldCastleTown} * "resourcesMultiplicator" > ${maxGoldCastleTown} THEN ${maxGoldCastleTown}
+        WHEN "type" = '${SettlementTypes.FORTIFIED_SETTLEMENT}' AND gold + ${goldFortifiedSettlement} * "resourcesMultiplicator" > ${maxGoldFortifiedSettlement} THEN ${maxGoldFortifiedSettlement}
+        WHEN "type" = '${SettlementTypes.CAPITOL_SETTLEMENT}' AND gold + ${goldCapitolSettlement} * "resourcesMultiplicator" > ${maxGoldCapitolSettlement} THEN ${maxGoldCapitolSettlement}
+        ELSE LEAST(gold + ${goldMiningTown} * "resourcesMultiplicator", ${maxGoldMiningTown})
       END`,
         wood: () => `CASE 
-        WHEN "type" = '${SettlementType.village}' AND wood + ${woodVillage} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
-        WHEN "type" = '${SettlementType.town}' AND wood + ${woodTown} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
-        WHEN "type" = '${SettlementType.city}' AND wood + ${woodCity} * "resourcesMultiplicator" > ${maxWood} THEN ${maxWood}
-        ELSE LEAST(wood + ${woodCity} * "resourcesMultiplicator", ${maxWood})
+        WHEN "type" = '${SettlementTypes.MINING_TOWN}' AND wood + ${woodMiningTown} * "resourcesMultiplicator" > ${maxWoodMiningTown} THEN ${maxWoodMiningTown}
+        WHEN "type" = '${SettlementTypes.CASTLE_TOWN}' AND wood + ${woodCastleTown} * "resourcesMultiplicator" > ${maxWoodCastleTown} THEN ${maxWoodCastleTown}
+        WHEN "type" = '${SettlementTypes.FORTIFIED_SETTLEMENT}' AND wood + ${woodFortifiedSettlement} * "resourcesMultiplicator" > ${maxWoodFortifiedSettlement} THEN ${maxWoodFortifiedSettlement}
+        WHEN "type" = '${SettlementTypes.CAPITOL_SETTLEMENT}' AND wood + ${woodCapitolSettlement} * "resourcesMultiplicator" > ${maxWoodCapitolSettlement} THEN ${maxWoodCapitolSettlement}
+        ELSE LEAST(wood + ${woodMiningTown} * "resourcesMultiplicator", ${maxWoodMiningTown})
       END`,
       })
       .getQuery();

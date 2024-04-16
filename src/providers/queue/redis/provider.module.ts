@@ -1,6 +1,8 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { ConfigModule } from '~/modules/config/config.module';
+import { ConfigService } from '~/modules/config/config.service';
 
 @Module({
   imports: [
@@ -9,7 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         return {
-          redis: configService.get<string>('REDIS_CONNECTION_STRING'),
+          redis: configService.appConfig.REDIS_CONNECTION_STRING,
         };
       },
     }),

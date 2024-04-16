@@ -1,8 +1,8 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
+import { ConfigService } from '~/modules/config/config.service';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
 
@@ -72,9 +72,7 @@ export class UserLocationService {
     radiusMetres?: number;
   }): Promise<boolean> {
     const defaultMaxInRadiusDistanceToTakeActionMeters =
-      this.configService.get<number>(
-        'DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS',
-      );
+      this.configService.gameConfig.DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS;
     const distance = await this.calculateDistance(params);
     return (
       distance !== null &&
@@ -95,9 +93,8 @@ export class UserLocationService {
     );
     const timeElapsedSec = (Date.now() - Number(previousTimestamp)) / 1000;
 
-    const defaultMaxUserSpeed = this.configService.get<number>(
-      'DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND',
-    );
+    const defaultMaxUserSpeed =
+      this.configService.gameConfig.DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND;
     return (
       distance !== null &&
       distance / timeElapsedSec <=

@@ -5,7 +5,6 @@ import {
   OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as Bull from 'bull';
 import Redis from 'ioredis';
@@ -13,6 +12,7 @@ import { Repository } from 'typeorm';
 
 import { sleep } from '~/common/utils';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
+import { ConfigService } from '~/modules/config/config.service';
 import { QueuesManagerService } from '~/modules/queues-manager/queues-manager.service';
 import {
   RequestRecruitmentDto,
@@ -83,9 +83,10 @@ export class RecruitmentsService implements OnModuleInit {
     recruitDto: RequestRecruitmentDto,
     settlement: SettlementsEntity,
   ) {
-    const unitRecruitmentTime = this.configService.get<number>(
-      `RECRUITMENT_TIMES_MS.${settlement.type}.${recruitDto.unitType}`,
-    );
+    const unitRecruitmentTime =
+      this.configService.gameConfig.SETTLEMENT[settlement.type].RECRUITMENT[
+        recruitDto.unitType
+      ];
 
     const unfinishedJobs = await this.getUnfinishedRecruitmentsBySettlementId(
       recruitDto.settlementId,
@@ -134,7 +135,7 @@ export class RecruitmentsService implements OnModuleInit {
 
     const queue: Bull.Queue = new Bull(
       bullSettlementRecruitmentQueueName(settlementId),
-      this.configService.get<string>('REDIS_CONNECTION_STRING'),
+      this.configService.appConfig.REDIS_CONNECTION_STRING,
     );
     const job: Bull.Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
     await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more

@@ -1,6 +1,8 @@
 import { RedisModule, RedisModuleOptions } from '@liaoliaots/nestjs-redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { ConfigModule } from '~/modules/config/config.module';
+import { ConfigService } from '~/modules/config/config.service';
 
 @Module({
   imports: [
@@ -12,7 +14,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       ): Promise<RedisModuleOptions> => {
         return {
           config: {
-            url: configService.get<string>('REDIS_CONNECTION_STRING'),
+            url: configService.appConfig.REDIS_CONNECTION_STRING,
           },
         };
       },

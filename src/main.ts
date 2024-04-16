@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
@@ -6,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import { AppModule } from '~/app.module';
 import { TransformInterceptor } from '~/common/interceptors/response.interceptor';
 import { JwtGuard } from '~/modules/auth/guards/jwt.guard';
+import { ConfigService } from '~/modules/config/config.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cors = require('cors');
@@ -15,7 +15,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   const allowedOrigins = [
-    configService.get('FE_APP_HOST'),
+    configService.appConfig.FE_APP_HOST,
     'capacitor://localhost',
     'ionic://localhost',
     'http://localhost',
@@ -40,7 +40,7 @@ async function bootstrap() {
   app.useGlobalGuards(new JwtGuard(app.get(Reflector)));
   app.useGlobalInterceptors(new TransformInterceptor(new Reflector()));
 
-  const port = configService.get('PORT');
+  const port = configService.appConfig.PORT;
 
   const config = new DocumentBuilder().build();
   const document = SwaggerModule.createDocument(app, config);

@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { RegisterRequestDto } from '~/modules/auth/dtos/register-request.dto';
 import { Tokens } from '~/modules/auth/types/Tokens';
+import { ConfigService } from '~/modules/config/config.service';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
@@ -36,10 +36,10 @@ export class AuthService {
   private async generateToken(user: UsersEntity): Promise<Tokens> {
     const payload = { id: user.id, email: user.email, username: user.username };
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.getOrThrow('JWT.ACCESS_TOKEN_EXPIRES_IN'),
+      expiresIn: this.configService.appConfig.JWT_ACCESS_TOKEN_EXPIRES_IN,
     });
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.getOrThrow('JWT.REFRESH_TOKEN_EXPIRES_IN'),
+      expiresIn: this.configService.appConfig.JWT_REFRESH_TOKEN_EXPIRES_IN,
     });
     return { access_token: accessToken, refresh_token: refreshToken };
   }

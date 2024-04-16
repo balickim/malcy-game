@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as Bull from 'bull';
+
+import { ConfigService } from '~/modules/config/config.service';
 
 @Injectable()
 export class QueuesManagerService {
@@ -15,7 +16,7 @@ export class QueuesManagerService {
     if (!queue) {
       queue = new Bull(
         name,
-        this.configService.get<string>('REDIS_CONNECTION_STRING'),
+        this.configService.appConfig.REDIS_CONNECTION_STRING,
       );
       callback && queue.process(1, callback);
       this.queues.set(name, queue);
@@ -29,7 +30,7 @@ export class QueuesManagerService {
   ): Promise<Bull.Job[]> {
     const queue: Bull.Queue = new Bull(
       name,
-      this.configService.get<string>('REDIS_CONNECTION_STRING'),
+      this.configService.appConfig.REDIS_CONNECTION_STRING,
     );
     return await queue.getJobs(jobStatuses);
   }

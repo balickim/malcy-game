@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
 import { QueuesManagerService } from '~/modules/queues-manager/queues-manager.service';
@@ -14,6 +15,7 @@ import { UserLocationService } from '~/modules/user-location/user-location.servi
 @Module({
   imports: [
     TypeOrmModule.forFeature([ArmyEntity, SettlementsEntity, EventLogEntity]),
+    ConfigModule,
   ],
   controllers: [RecruitmentsController],
   providers: [
