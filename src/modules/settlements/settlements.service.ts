@@ -1,13 +1,12 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { GeoJSON, Repository } from 'typeorm';
 
-import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
-import PickUpArmyDto from '~/modules/settlements/dtos/pickUpArmy.dto';
-import PutDownArmyDto from '~/modules/settlements/dtos/putDownArmy.dto';
 import { SettlementsDto } from '~/modules/settlements/dtos/settlements.dto';
+import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
@@ -138,43 +137,58 @@ export class SettlementsService {
   }
 
   async pickUpArmy(
-    pickUpArmyDto: PickUpArmyDto,
+    pickUpArmyDto: TransferArmyDto,
     settlement: SettlementsEntity,
   ) {
     if (
-      settlement.army.knights < pickUpArmyDto.knights ||
-      settlement.army.archers < pickUpArmyDto.archers
+      settlement.army[UnitType.SWORDSMAN] < pickUpArmyDto[UnitType.SWORDSMAN] ||
+      settlement.army[UnitType.ARCHER] < pickUpArmyDto[UnitType.ARCHER] ||
+      settlement.army[UnitType.KNIGHT] < pickUpArmyDto[UnitType.KNIGHT] ||
+      settlement.army[UnitType.LUCHADOR] < pickUpArmyDto[UnitType.LUCHADOR] ||
+      settlement.army[UnitType.ARCHMAGE] < pickUpArmyDto[UnitType.ARCHMAGE]
     ) {
       throw new NotFoundException('Not enough troops in the settlement');
     }
 
-    settlement.army.knights -= pickUpArmyDto.knights;
-    settlement.army.archers -= pickUpArmyDto.archers;
+    settlement.army[UnitType.SWORDSMAN] -= pickUpArmyDto[UnitType.SWORDSMAN];
+    settlement.army[UnitType.ARCHER] -= pickUpArmyDto[UnitType.ARCHER];
+    settlement.army[UnitType.KNIGHT] -= pickUpArmyDto[UnitType.KNIGHT];
+    settlement.army[UnitType.LUCHADOR] -= pickUpArmyDto[UnitType.LUCHADOR];
+    settlement.army[UnitType.ARCHMAGE] -= pickUpArmyDto[UnitType.ARCHMAGE];
 
     const userArmy = await this.armyEntityRepository.findOne({
       where: { userId: settlement.user.id },
     });
 
-    userArmy.knights += pickUpArmyDto.knights;
-    userArmy.archers += pickUpArmyDto.archers;
+    userArmy[UnitType.SWORDSMAN] += pickUpArmyDto[UnitType.SWORDSMAN];
+    userArmy[UnitType.ARCHER] += pickUpArmyDto[UnitType.ARCHER];
+    userArmy[UnitType.KNIGHT] += pickUpArmyDto[UnitType.KNIGHT];
+    userArmy[UnitType.LUCHADOR] += pickUpArmyDto[UnitType.LUCHADOR];
+    userArmy[UnitType.ARCHMAGE] += pickUpArmyDto[UnitType.ARCHMAGE];
 
     await this.armyEntityRepository.save(settlement.army);
     await this.armyEntityRepository.save(userArmy);
 
     return {
       userArmy: {
-        knights: userArmy.knights,
-        archers: userArmy.archers,
+        [UnitType.SWORDSMAN]: userArmy[UnitType.SWORDSMAN],
+        [UnitType.ARCHER]: userArmy[UnitType.ARCHER],
+        [UnitType.KNIGHT]: userArmy[UnitType.KNIGHT],
+        [UnitType.LUCHADOR]: userArmy[UnitType.LUCHADOR],
+        [UnitType.ARCHMAGE]: userArmy[UnitType.ARCHMAGE],
       },
       settlementArmy: {
-        knights: settlement.army.knights,
-        archers: settlement.army.archers,
+        [UnitType.SWORDSMAN]: settlement.army[UnitType.SWORDSMAN],
+        [UnitType.ARCHER]: settlement.army[UnitType.ARCHER],
+        [UnitType.KNIGHT]: settlement.army[UnitType.KNIGHT],
+        [UnitType.LUCHADOR]: settlement.army[UnitType.LUCHADOR],
+        [UnitType.ARCHMAGE]: settlement.army[UnitType.ARCHMAGE],
       },
     };
   }
 
   async putDownArmy(
-    putDownArmyDto: PutDownArmyDto,
+    putDownArmyDto: TransferArmyDto,
     settlement: SettlementsEntity,
   ) {
     const userArmy = await this.armyEntityRepository.findOne({
@@ -182,29 +196,44 @@ export class SettlementsService {
     });
 
     if (
-      userArmy.knights < putDownArmyDto.knights ||
-      userArmy.archers < putDownArmyDto.archers
+      userArmy[UnitType.SWORDSMAN] < putDownArmyDto[UnitType.SWORDSMAN] ||
+      userArmy[UnitType.ARCHER] < putDownArmyDto[UnitType.ARCHER] ||
+      userArmy[UnitType.KNIGHT] < putDownArmyDto[UnitType.KNIGHT] ||
+      userArmy[UnitType.LUCHADOR] < putDownArmyDto[UnitType.LUCHADOR] ||
+      userArmy[UnitType.ARCHMAGE] < putDownArmyDto[UnitType.ARCHMAGE]
     ) {
       throw new NotFoundException('Not enough troops in the user army');
     }
 
-    userArmy.knights -= putDownArmyDto.knights;
-    userArmy.archers -= putDownArmyDto.archers;
+    userArmy[UnitType.SWORDSMAN] -= putDownArmyDto[UnitType.SWORDSMAN];
+    userArmy[UnitType.ARCHER] -= putDownArmyDto[UnitType.ARCHER];
+    userArmy[UnitType.KNIGHT] -= putDownArmyDto[UnitType.KNIGHT];
+    userArmy[UnitType.LUCHADOR] -= putDownArmyDto[UnitType.LUCHADOR];
+    userArmy[UnitType.ARCHMAGE] -= putDownArmyDto[UnitType.ARCHMAGE];
 
-    settlement.army.knights += putDownArmyDto.knights;
-    settlement.army.archers += putDownArmyDto.archers;
+    settlement.army[UnitType.SWORDSMAN] += putDownArmyDto[UnitType.SWORDSMAN];
+    settlement.army[UnitType.ARCHER] += putDownArmyDto[UnitType.ARCHER];
+    settlement.army[UnitType.KNIGHT] += putDownArmyDto[UnitType.KNIGHT];
+    settlement.army[UnitType.LUCHADOR] += putDownArmyDto[UnitType.LUCHADOR];
+    settlement.army[UnitType.ARCHMAGE] += putDownArmyDto[UnitType.ARCHMAGE];
 
     await this.armyEntityRepository.save(settlement.army);
     await this.armyEntityRepository.save(userArmy);
 
     return {
       userArmy: {
-        knights: userArmy.knights,
-        archers: userArmy.archers,
+        [UnitType.SWORDSMAN]: userArmy[UnitType.SWORDSMAN],
+        [UnitType.ARCHER]: userArmy[UnitType.ARCHER],
+        [UnitType.KNIGHT]: userArmy[UnitType.KNIGHT],
+        [UnitType.LUCHADOR]: userArmy[UnitType.LUCHADOR],
+        [UnitType.ARCHMAGE]: userArmy[UnitType.ARCHMAGE],
       },
       settlementArmy: {
-        knights: settlement.army.knights,
-        archers: settlement.army.archers,
+        [UnitType.SWORDSMAN]: settlement.army[UnitType.SWORDSMAN],
+        [UnitType.ARCHER]: settlement.army[UnitType.ARCHER],
+        [UnitType.KNIGHT]: settlement.army[UnitType.KNIGHT],
+        [UnitType.LUCHADOR]: settlement.army[UnitType.LUCHADOR],
+        [UnitType.ARCHMAGE]: settlement.army[UnitType.ARCHMAGE],
       },
     };
   }

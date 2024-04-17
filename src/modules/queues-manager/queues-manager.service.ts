@@ -12,15 +12,34 @@ export class QueuesManagerService {
     name: string,
     callback?: (job: Bull.Job<any>, done: Bull.DoneCallback) => Promise<void>,
   ) {
+    console.log(
+      'generateQueue',
+      this.configService.appConfig.REDIS_CONNECTION_STRING,
+    );
     let queue = this.queues.get(name);
     if (!queue) {
       queue = new Bull(
         name,
         this.configService.appConfig.REDIS_CONNECTION_STRING,
       );
-      callback && queue.process(1, callback);
+      callback && queue.process(callback);
       this.queues.set(name, queue);
     }
+    queue.on('completed', (job, result) => {
+      console.log(`Job ${job.id} has completed with result: ${result}`);
+    });
+
+    queue.on('failed', (job, err) => {
+      console.log(`Job ${job.id} has failed with error: ${err.message}`);
+    });
+
+    queue.on('active', (job) => {
+      console.log(`Job ${job.id} is now active;`);
+    });
+
+    queue.on('waiting', (jobId) => {
+      console.log(`Job ${jobId} is waiting to be processed`);
+    });
     return queue;
   }
 

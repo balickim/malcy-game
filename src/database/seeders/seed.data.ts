@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import { DataSource, Repository } from 'typeorm';
 
-import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
@@ -53,8 +53,8 @@ async function createArmy(
   user?: UsersEntity,
 ) {
   const newArmy = armyEntityRepository.create({
-    archers: faker.number.int({ min: 0, max: 1000 }),
-    knights: faker.number.int({ min: 0, max: 1000 }),
+    [UnitType.SWORDSMAN]: faker.number.int({ min: 0, max: 1000 }),
+    [UnitType.ARCHER]: faker.number.int({ min: 0, max: 1000 }),
     settlement,
     user,
   });

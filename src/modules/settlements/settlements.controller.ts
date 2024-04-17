@@ -13,8 +13,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { IsWithinLocation } from '~/common/decorators/is-within-location.decorator';
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
 import { IExpressRequestWithUser } from '~/modules/auth/guards/jwt.guard';
-import PickUpArmyDto from '~/modules/settlements/dtos/pickUpArmy.dto';
-import PutDownArmyDto from '~/modules/settlements/dtos/putDownArmy.dto';
+import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
 import {
   IExpressRequestWithUserAndSettlement,
   NearSettlementLocationGuard,
@@ -75,7 +74,7 @@ export class SettlementsController {
   @ResponseMessage('Army transferred successfully')
   async pickUpArmy(
     @Request() req: IExpressRequestWithUserAndSettlement,
-    @Body() pickUpArmyDto: PickUpArmyDto,
+    @Body() pickUpArmyDto: TransferArmyDto,
   ) {
     return this.settlementsService.pickUpArmy(pickUpArmyDto, req.settlement);
   }
@@ -86,7 +85,7 @@ export class SettlementsController {
   @ResponseMessage('Army transferred successfully')
   async putDownArmy(
     @Request() req: IExpressRequestWithUserAndSettlement,
-    @Body() putDownArmyDto: PutDownArmyDto,
+    @Body() putDownArmyDto: TransferArmyDto,
   ) {
     return this.settlementsService.putDownArmy(putDownArmyDto, req.settlement);
   }

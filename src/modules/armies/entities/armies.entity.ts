@@ -13,8 +13,11 @@ import { SettlementsEntity } from '~/modules/settlements/entities/settlements.en
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 export enum UnitType {
-  knights = 'knights',
-  archers = 'archers',
+  SWORDSMAN = 'swordsman',
+  ARCHER = 'archer',
+  KNIGHT = 'knight',
+  LUCHADOR = 'luchador',
+  ARCHMAGE = 'archmage',
 }
 
 @Entity({ name: 'armies' })
@@ -22,16 +25,25 @@ export class ArmyEntity extends AuditableBaseEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ nullable: false })
-  knights: number;
+  @Column({ nullable: false, default: 0 })
+  [UnitType.SWORDSMAN]: number;
 
-  @Column({ nullable: false })
-  archers: number;
+  @Column({ nullable: false, default: 0 })
+  [UnitType.ARCHER]: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false, default: 0 })
+  [UnitType.KNIGHT]: number;
+
+  @Column({ nullable: false, default: 0 })
+  [UnitType.LUCHADOR]: number;
+
+  @Column({ nullable: false, default: 0 })
+  [UnitType.ARCHMAGE]: number;
+
+  @Column({ nullable: true, unique: true })
   userId?: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   settlementId?: string;
 
   @OneToOne(() => UsersEntity, (user) => user.army)

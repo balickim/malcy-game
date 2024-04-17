@@ -69,12 +69,15 @@ export class RecruitmentsService implements OnModuleInit {
     } while (cursor !== '0');
 
     this.logger.log(`Attaching processors to existing recruitment queues...`);
-    for (const queueName of queueNames) {
-      await this.queueService.generateQueue(queueName, this.recruitProcessor());
-    }
+    // for (const queueName of queueNames) {
+    //   await this.queueService.generateQueue(queueName, this.recruitProcessor());
+    // }
     await Promise.all(
       [...queueNames].map((queueName) =>
-        this.queueService.generateQueue(queueName, this.recruitProcessor()),
+        this.queueService.generateQueue(
+          queueName,
+          this.recruitProcessor.bind(this),
+        ),
       ),
     );
   }
@@ -111,7 +114,7 @@ export class RecruitmentsService implements OnModuleInit {
 
     const queue = await this.queueService.generateQueue(
       bullSettlementRecruitmentQueueName(recruitDto.settlementId),
-      this.recruitProcessor(),
+      this.recruitProcessor.bind(this),
     );
     const job: Bull.Job<ResponseRecruitmentDto> = await queue.add(data, {
       delay: totalDelayMs,
@@ -165,10 +168,14 @@ export class RecruitmentsService implements OnModuleInit {
       job: Bull.Job<ResponseRecruitmentDto>,
       done: Bull.DoneCallback,
     ) => {
+      console.log('recruitProcessor');
       const totalUnits = job.data.unitCount;
       const jobId = job.id;
       const unitRecruitTimeMs = job.data.unitRecruitmentTime;
 
+      console.log('totalUnits', totalUnits);
+      console.log('jobId', jobId);
+      console.log('unitRecruitTimeMs', unitRecruitTimeMs);
       for (let i = 0; i < totalUnits; i++) {
         const currentProgress = await this.getRecruitmentProgress(
           job.data,
@@ -217,6 +224,7 @@ export class RecruitmentsService implements OnModuleInit {
     army[recruitDto.unitType] += 1;
     await this.armyRepository.save(army);
 
+    console.log('army', army);
     await this.saveRecruitmentProgress(recruitDto, jobId, currentProgress + 1);
     return true;
   }
