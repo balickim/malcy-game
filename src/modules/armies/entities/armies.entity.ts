@@ -26,6 +26,12 @@ export class ArmyEntity extends AuditableBaseEntity {
   id: string;
 
   @Column({ nullable: false, default: 0 })
+  knights: number;
+
+  @Column({ nullable: false, default: 0 })
+  archers: number;
+
+  @Column({ nullable: false, default: 0 })
   [UnitType.SWORDSMAN]: number;
 
   @Column({ nullable: false, default: 0 })
