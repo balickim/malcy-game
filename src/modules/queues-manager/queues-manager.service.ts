@@ -22,7 +22,9 @@ export class QueuesManagerService {
         name,
         this.configService.appConfig.REDIS_CONNECTION_STRING,
       );
-      callback && queue.process(callback);
+      if (callback) {
+        queue.process(callback);
+      }
       this.queues.set(name, queue);
     }
     queue.on('completed', (job, result) => {

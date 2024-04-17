@@ -69,15 +69,9 @@ export class RecruitmentsService implements OnModuleInit {
     } while (cursor !== '0');
 
     this.logger.log(`Attaching processors to existing recruitment queues...`);
-    // for (const queueName of queueNames) {
-    //   await this.queueService.generateQueue(queueName, this.recruitProcessor());
-    // }
     await Promise.all(
       [...queueNames].map((queueName) =>
-        this.queueService.generateQueue(
-          queueName,
-          this.recruitProcessor.bind(this),
-        ),
+        this.queueService.generateQueue(queueName, this.recruitProcessor()),
       ),
     );
   }
@@ -114,12 +108,10 @@ export class RecruitmentsService implements OnModuleInit {
 
     const queue = await this.queueService.generateQueue(
       bullSettlementRecruitmentQueueName(recruitDto.settlementId),
-      this.recruitProcessor.bind(this),
+      this.recruitProcessor(),
     );
     const job: Bull.Job<ResponseRecruitmentDto> = await queue.add(data, {
       delay: totalDelayMs,
-      removeOnComplete: true,
-      removeOnFail: true,
     });
     this.logger.log(
       `Job added to queue for settlement ${recruitDto.settlementId} with ID: ${job.id}`,
