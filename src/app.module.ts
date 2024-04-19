@@ -16,7 +16,6 @@ import { UserLocationModule } from '~/modules/user-location/user-location.module
 import { UsersModule } from '~/modules/users/users.module';
 import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.module';
 import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/provider.module';
-import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.module';
 
 @Module({
   imports: [
@@ -24,7 +23,6 @@ import { QueueRedisProviderModule } from '~/providers/queue/redis/provider.modul
     ScheduleModule.forRoot(),
     PostgresDatabaseProviderModule,
     CacheRedisProviderModule,
-    QueueRedisProviderModule,
     UsersModule,
     SettlementsModule,
     AuthModule,

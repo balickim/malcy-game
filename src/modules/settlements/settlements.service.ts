@@ -58,6 +58,7 @@ export class SettlementsService {
   }
 
   async findSettlementsInBounds(
+    user: UsersEntity,
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
   ): Promise<SettlementsDto[]> {
@@ -72,6 +73,9 @@ export class SettlementsService {
           'ST_Y(settlement.location) AS lat',
         ])
         .leftJoinAndSelect('settlement.user', 'user')
+        .leftJoinAndSelect('settlement.army', 'army', 'user.id = :userId', {
+          userId: user.id,
+        })
         .where(
           `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
           {
@@ -85,6 +89,14 @@ export class SettlementsService {
       const rawResults = await query.getRawMany();
 
       return rawResults.map((result) => {
+        const hasArmy =
+          (result.army_swordsman !== null &&
+            result.army_swordsman !== undefined) ||
+          (result.army_archer !== null && result.army_archer !== undefined) ||
+          (result.army_knight !== null && result.army_knight !== undefined) ||
+          (result.army_luchador !== null &&
+            result.army_luchador !== undefined) ||
+          (result.army_archmage !== null && result.army_archmage !== undefined);
         return {
           id: result.id,
           name: result.name,
@@ -99,11 +111,20 @@ export class SettlementsService {
             updatedAt: result.user_updatedAt,
             deletedAt: result.user_deletedAt,
           },
+          army: hasArmy
+            ? {
+                swordsman: result.army_swordsman,
+                archer: result.army_archer,
+                knight: result.army_knight,
+                luchador: result.army_luchador,
+                archmage: result.army_archmage,
+              }
+            : null,
         };
       });
     } catch (e) {
       this.logger.error(
-        `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED`,
+        `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED: ${e.message}`,
       );
     }
   }
@@ -122,7 +143,7 @@ export class SettlementsService {
       );
     }
 
-    return settlement.army;
+    return settlement;
   }
 
   async getSettlementById(id: string) {

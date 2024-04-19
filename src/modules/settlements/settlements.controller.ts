@@ -29,6 +29,7 @@ export class SettlementsController {
   @Get('/bounds')
   @ResponseMessage('Fetched Settlements Succesfully')
   async findInBounds(
+    @Request() req: IExpressRequestWithUser,
     @Query('southWestLat') southWestLat: string,
     @Query('southWestLng') southWestLng: string,
     @Query('northEastLat') northEastLat: string,
@@ -44,6 +45,7 @@ export class SettlementsController {
     };
 
     return await this.settlementsService.findSettlementsInBounds(
+      req.user,
       southWest,
       northEast,
     );
