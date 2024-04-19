@@ -6,14 +6,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as Bull from 'bull';
+import { Job, Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 import { Repository } from 'typeorm';
 
 import { sleep } from '~/common/utils';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { ConfigService } from '~/modules/config/config.service';
-import { QueuesManagerService } from '~/modules/queues-manager/queues-manager.service';
 import {
   RequestRecruitmentDto,
   ResponseRecruitmentDto,
@@ -39,7 +38,6 @@ export class RecruitmentsService implements OnModuleInit {
     private readonly redis: Redis,
     @InjectRepository(ArmyEntity)
     private armyRepository: Repository<ArmyEntity>,
-    private queueService: QueuesManagerService,
     private settlementsService: SettlementsService,
     private configService: ConfigService,
   ) {}
@@ -68,14 +66,18 @@ export class RecruitmentsService implements OnModuleInit {
       });
     } while (cursor !== '0');
 
-    this.logger.log(`Attaching processors to existing recruitment queues...`);
-    for (const queueName of queueNames) {
-      await this.queueService.generateQueue(queueName, this.recruitProcessor());
-    }
+    this.logger.log(
+      `Attaching processors to ${[...queueNames].length} existing recruitment queues...`,
+    );
     await Promise.all(
-      [...queueNames].map((queueName) =>
-        this.queueService.generateQueue(queueName, this.recruitProcessor()),
-      ),
+      [...queueNames].map((queueName) => {
+        new Queue<ResponseRecruitmentDto>(queueName, {
+          connection: this.redis,
+        });
+        new Worker(queueName, this.recruitProcessor, {
+          connection: this.redis,
+        });
+      }),
     );
   }
 
@@ -109,14 +111,17 @@ export class RecruitmentsService implements OnModuleInit {
       finishesOn,
     };
 
-    const queue = await this.queueService.generateQueue(
+    const queue = new Queue<ResponseRecruitmentDto>(
       bullSettlementRecruitmentQueueName(recruitDto.settlementId),
-      this.recruitProcessor(),
+      { connection: this.redis },
     );
-    const job: Bull.Job<ResponseRecruitmentDto> = await queue.add(data, {
+    new Worker(
+      bullSettlementRecruitmentQueueName(recruitDto.settlementId),
+      this.recruitProcessor,
+      { connection: this.redis },
+    );
+    const job: Job<ResponseRecruitmentDto> = await queue.add('recruit', data, {
       delay: totalDelayMs,
-      removeOnComplete: true,
-      removeOnFail: true,
     });
     this.logger.log(
       `Job added to queue for settlement ${recruitDto.settlementId} with ID: ${job.id}`,
@@ -133,23 +138,21 @@ export class RecruitmentsService implements OnModuleInit {
       await this.settlementsService.getSettlementById(settlementId);
     if (settlement.user.id !== user.id) throw new UnauthorizedException();
 
-    const queue: Bull.Queue = new Bull(
+    const queue = new Queue<ResponseRecruitmentDto>(
       bullSettlementRecruitmentQueueName(settlementId),
-      this.configService.appConfig.REDIS_CONNECTION_STRING,
+      { connection: this.redis },
     );
-    const job: Bull.Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
+    const job: Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
     await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
-    await job.discard();
-    await job.moveToCompleted('', true, true);
     return 'success';
   }
 
   public async getUnfinishedRecruitmentsBySettlementId(settlementId: string) {
-    let jobs: Bull.Job<ResponseRecruitmentDto>[] =
-      await this.queueService.getJobsFromQueue(
-        bullSettlementRecruitmentQueueName(settlementId),
-        ['active', 'waiting', 'delayed'],
-      );
+    const queue = new Queue<ResponseRecruitmentDto>(
+      bullSettlementRecruitmentQueueName(settlementId),
+      { connection: this.redis },
+    );
+    let jobs = await queue.getJobs(['active', 'waiting', 'delayed']);
 
     jobs = jobs.filter((job) => job !== null);
     if (!jobs) {
@@ -160,42 +163,37 @@ export class RecruitmentsService implements OnModuleInit {
     return jobs;
   }
 
-  private recruitProcessor() {
-    return async (
-      job: Bull.Job<ResponseRecruitmentDto>,
-      done: Bull.DoneCallback,
-    ) => {
-      const totalUnits = job.data.unitCount;
-      const jobId = job.id;
-      const unitRecruitTimeMs = job.data.unitRecruitmentTime;
+  private recruitProcessor = async (job: Job<ResponseRecruitmentDto>) => {
+    const totalUnits = job.data.unitCount;
+    const jobId = job.id;
+    const unitRecruitTimeMs = job.data.unitRecruitmentTime;
 
-      for (let i = 0; i < totalUnits; i++) {
-        const currentProgress = await this.getRecruitmentProgress(
-          job.data,
-          jobId,
+    for (let i = 0; i < totalUnits; i++) {
+      const currentProgress = await this.getRecruitmentProgress(
+        job.data,
+        jobId,
+      );
+      if (currentProgress < totalUnits) {
+        await sleep(unitRecruitTimeMs);
+        await this.recruitUnit(job.data, jobId);
+        await job.updateProgress(currentProgress + 1);
+
+        const remainingUnits = totalUnits - (currentProgress + 1);
+        const estimatedFinishTime = new Date(
+          Date.now() + remainingUnits * unitRecruitTimeMs,
         );
-        if (currentProgress < totalUnits) {
-          await sleep(unitRecruitTimeMs);
-          await this.recruitUnit(job.data, jobId);
-          await job.progress(currentProgress + 1);
 
-          const remainingUnits = totalUnits - (currentProgress + 1);
-          const estimatedFinishTime = new Date(
-            Date.now() + remainingUnits * unitRecruitTimeMs,
-          );
-
-          await job.update({ ...job.data, finishesOn: estimatedFinishTime });
-        } else {
-          break;
-        }
+        await job.updateData({ ...job.data, finishesOn: estimatedFinishTime });
+      } else {
+        break;
       }
-      done();
-    };
-  }
+    }
+    return '';
+  };
 
   private async recruitUnit(
     recruitDto: RequestRecruitmentDto,
-    jobId: Bull.JobId,
+    jobId: string,
   ): Promise<boolean> {
     const currentProgress = await this.getRecruitmentProgress(
       recruitDto,

@@ -4,25 +4,16 @@ import {
   SettlementTypes,
 } from '~/modules/settlements/entities/settlements.entity';
 
-// export enum UnitType {
-//   SWORDSMAN = 'swordsman',
-//   ARCHER = 'archer',
-//   KNIGHT = 'knight',
-//   LUCHADOR = 'luchador',
-//   ARCHMAGE = 'archmage',
-// }
-
 export const gameConfig = () => ({
   SETTLEMENT: {
     [SettlementTypes.MINING_TOWN]: {
       MAX: 'infinite',
       RECRUITMENT: {
-        [UnitType.knights]: 60_000, // 1 minute
-        [UnitType.archers]: 120_000, // 2 minutes
+        [UnitType.SWORDSMAN]: 60_000, // 1 minute
       },
       RESOURCES_CAP: {
-        [ResourceType.gold]: 4_000, // Change these also in entities
-        [ResourceType.wood]: 1_000, // Change these also in entities
+        [ResourceType.gold]: 4_000, // must be also changed in settlements.entity.ts
+        [ResourceType.wood]: 1_000, // must be also changed in settlements.entity.ts
       },
       RESOURCE_GENERATION_BASE: {
         [ResourceType.wood]: 1,
@@ -32,12 +23,12 @@ export const gameConfig = () => ({
     [SettlementTypes.CASTLE_TOWN]: {
       MAX: 'infinite',
       RECRUITMENT: {
-        [UnitType.knights]: 30_000,
-        [UnitType.archers]: 60_000,
+        [UnitType.SWORDSMAN]: 30_000,
+        [UnitType.ARCHER]: 60_000,
       },
       RESOURCES_CAP: {
-        [ResourceType.gold]: 8_000,
-        [ResourceType.wood]: 2_000,
+        [ResourceType.gold]: 8_000, // must be also changed in settlements.entity.ts
+        [ResourceType.wood]: 2_000, // must be also changed in settlements.entity.ts
       },
       RESOURCE_GENERATION_BASE: {
         [ResourceType.wood]: 2,
@@ -47,12 +38,14 @@ export const gameConfig = () => ({
     [SettlementTypes.FORTIFIED_SETTLEMENT]: {
       MAX: 'infinite',
       RECRUITMENT: {
-        [UnitType.knights]: 15_000,
-        [UnitType.archers]: 30_000,
+        [UnitType.SWORDSMAN]: 15_000,
+        [UnitType.ARCHER]: 30_000,
+        [UnitType.KNIGHT]: 120_000,
+        [UnitType.LUCHADOR]: 280_000,
       },
       RESOURCES_CAP: {
-        [ResourceType.gold]: 16_000,
-        [ResourceType.wood]: 4_000,
+        [ResourceType.gold]: 16_000, // must be also changed in settlements.entity.ts
+        [ResourceType.wood]: 4_000, // must be also changed in settlements.entity.ts
       },
       RESOURCE_GENERATION_BASE: {
         [ResourceType.wood]: 4,
@@ -62,8 +55,11 @@ export const gameConfig = () => ({
     [SettlementTypes.CAPITOL_SETTLEMENT]: {
       MAX: 1,
       RECRUITMENT: {
-        [UnitType.knights]: 5_000,
-        [UnitType.archers]: 10_000,
+        [UnitType.SWORDSMAN]: 5_000,
+        [UnitType.ARCHER]: 10_000,
+        [UnitType.KNIGHT]: 60_000,
+        [UnitType.LUCHADOR]: 90_000,
+        [UnitType.ARCHMAGE]: 120_000,
       },
       RESOURCES_CAP: {
         [ResourceType.gold]: 100_000, // must be also changed in settlements.entity.ts

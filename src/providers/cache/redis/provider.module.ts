@@ -14,7 +14,10 @@ import { ConfigService } from '~/modules/config/config.service';
       ): Promise<RedisModuleOptions> => {
         return {
           config: {
-            url: configService.appConfig.REDIS_CONNECTION_STRING,
+            host: configService.appConfig.REDIS_HOST,
+            port: configService.appConfig.REDIS_PORT,
+            password: configService.appConfig.REDIS_PASSWORD,
+            maxRetriesPerRequest: null,
           },
         };
       },

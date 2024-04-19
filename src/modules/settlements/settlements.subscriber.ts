@@ -6,7 +6,7 @@ import {
   InsertEvent,
 } from 'typeorm';
 
-import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsGateway } from '~/modules/settlements/settlements.gateway';
 
@@ -44,8 +44,11 @@ export class SettlementsSubscriber
 
     const army = new ArmyEntity();
     army.settlement = event.entity;
-    army.knights = 0;
-    army.archers = 0;
+    army[UnitType.SWORDSMAN] = 0;
+    army[UnitType.ARCHER] = 0;
+    army[UnitType.KNIGHT] = 0;
+    army[UnitType.LUCHADOR] = 0;
+    army[UnitType.ARCHMAGE] = 0;
     await event.manager.save(ArmyEntity, army);
   }
 }
