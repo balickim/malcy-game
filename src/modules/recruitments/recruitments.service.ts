@@ -1,5 +1,6 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import {
+  BadRequestException,
   Injectable,
   Logger,
   OnModuleInit,
@@ -88,7 +89,13 @@ export class RecruitmentsService implements OnModuleInit {
     const unitRecruitmentTime =
       this.configService.gameConfig.SETTLEMENT[settlement.type].RECRUITMENT[
         recruitDto.unitType
-      ];
+      ] ?? undefined;
+
+    if (unitRecruitmentTime === undefined) {
+      throw new BadRequestException(
+        `Unit type ${recruitDto.unitType} cannot be recruited in this settlement type.`,
+      );
+    }
 
     const unfinishedJobs = await this.getUnfinishedRecruitmentsBySettlementId(
       recruitDto.settlementId,
