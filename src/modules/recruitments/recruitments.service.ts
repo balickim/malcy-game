@@ -89,7 +89,7 @@ export class RecruitmentsService implements OnModuleInit {
     const unitRecruitmentTime =
       this.configService.gameConfig.SETTLEMENT[settlement.type].RECRUITMENT[
         recruitDto.unitType
-      ] ?? undefined;
+      ].TIME_MS ?? undefined;
 
     if (unitRecruitmentTime === undefined) {
       throw new BadRequestException(
