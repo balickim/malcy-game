@@ -39,7 +39,7 @@ interface SettlementConfig {
   RESOURCE_GENERATION_BASE: ResourceGenerationBase;
 }
 
-interface GameConfig {
+export interface GameConfig {
   DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS: number;
   DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND: number;
   SETTLEMENT: {

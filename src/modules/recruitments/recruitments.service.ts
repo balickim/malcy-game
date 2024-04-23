@@ -161,9 +161,14 @@ export class RecruitmentsService implements OnModuleInit {
     );
     let jobs = await queue.getJobs(['active', 'waiting', 'delayed']);
 
-    jobs = jobs.filter((job) => job !== null);
+    const results = await Promise.all(
+      jobs.map(async (job) => {
+        const progress = await this.getRecruitmentProgress(job.data, job.id);
+        return progress >= job.data.unitCount || progress === null;
+      }),
+    );
+    jobs = jobs.filter((_, index) => !results[index]);
     if (!jobs) {
-      this.logger.debug(`Jobs for settlement ${settlementId} not found.`);
       return [];
     }
 
@@ -174,6 +179,7 @@ export class RecruitmentsService implements OnModuleInit {
     const totalUnits = job.data.unitCount;
     const jobId = job.id;
     const unitRecruitTimeMs = job.data.unitRecruitmentTime;
+    let leftoverTime = 0;
 
     for (let i = 0; i < totalUnits; i++) {
       const currentProgress = await this.getRecruitmentProgress(
@@ -181,16 +187,17 @@ export class RecruitmentsService implements OnModuleInit {
         jobId,
       );
       if (currentProgress < totalUnits) {
-        await sleep(unitRecruitTimeMs);
+        const sleepTime = Math.max(0, unitRecruitTimeMs - leftoverTime);
+        await sleep(sleepTime);
+
+        const start = Date.now();
         await this.recruitUnit(job.data, jobId);
-        await job.updateProgress(currentProgress + 1);
+        const duration = Date.now() - start;
 
-        const remainingUnits = totalUnits - (currentProgress + 1);
-        const estimatedFinishTime = new Date(
-          Date.now() + remainingUnits * unitRecruitTimeMs,
-        );
+        leftoverTime = duration - unitRecruitTimeMs;
+        leftoverTime = Math.max(0, leftoverTime);
 
-        await job.updateData({ ...job.data, finishesOn: estimatedFinishTime });
+        await job.updateProgress(i + 1);
       } else {
         break;
       }
