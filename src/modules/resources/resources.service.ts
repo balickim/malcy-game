@@ -28,10 +28,8 @@ export class ResourcesService {
       .RESOURCE_GENERATION_BASE[resourceType];
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_10_SECONDS)
   async updateResources() {
-    this.logger.log('Distributing resources to settlements...');
-
     const goldMiningTown = this.getBaseValue(
       SettlementTypesEnum.MINING_TOWN,
       ResourceTypeEnum.gold,
@@ -101,27 +99,21 @@ export class ResourcesService {
       .update(SettlementsEntity)
       .set({
         gold: () => `CASE 
-        WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' AND gold + ${goldMiningTown} * "resourcesMultiplicator" > ${maxGoldMiningTown} THEN ${maxGoldMiningTown}
-        WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' AND gold + ${goldCastleTown} * "resourcesMultiplicator" > ${maxGoldCastleTown} THEN ${maxGoldCastleTown}
-        WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' AND gold + ${goldFortifiedSettlement} * "resourcesMultiplicator" > ${maxGoldFortifiedSettlement} THEN ${maxGoldFortifiedSettlement}
-        WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' AND gold + ${goldCapitolSettlement} * "resourcesMultiplicator" > ${maxGoldCapitolSettlement} THEN ${maxGoldCapitolSettlement}
-        ELSE LEAST(gold + ${goldMiningTown} * "resourcesMultiplicator", ${maxGoldMiningTown})
-      END`,
+          WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN LEAST("gold" + ${goldMiningTown} * "resourcesMultiplicator", ${maxGoldMiningTown})
+          WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN LEAST("gold" + ${goldCastleTown} * "resourcesMultiplicator", ${maxGoldCastleTown})
+          WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN LEAST("gold" + ${goldFortifiedSettlement} * "resourcesMultiplicator", ${maxGoldFortifiedSettlement})
+          WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN LEAST("gold" + ${goldCapitolSettlement} * "resourcesMultiplicator", ${maxGoldCapitolSettlement})
+        END`,
         wood: () => `CASE 
-        WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' AND wood + ${woodMiningTown} * "resourcesMultiplicator" > ${maxWoodMiningTown} THEN ${maxWoodMiningTown}
-        WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' AND wood + ${woodCastleTown} * "resourcesMultiplicator" > ${maxWoodCastleTown} THEN ${maxWoodCastleTown}
-        WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' AND wood + ${woodFortifiedSettlement} * "resourcesMultiplicator" > ${maxWoodFortifiedSettlement} THEN ${maxWoodFortifiedSettlement}
-        WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' AND wood + ${woodCapitolSettlement} * "resourcesMultiplicator" > ${maxWoodCapitolSettlement} THEN ${maxWoodCapitolSettlement}
-        ELSE LEAST(wood + ${woodMiningTown} * "resourcesMultiplicator", ${maxWoodMiningTown})
-      END`,
+          WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN LEAST("wood" + ${woodMiningTown} * "resourcesMultiplicator", ${maxWoodMiningTown})
+          WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN LEAST("wood" + ${woodCastleTown} * "resourcesMultiplicator", ${maxWoodCastleTown})
+          WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN LEAST("wood" + ${woodFortifiedSettlement} * "resourcesMultiplicator", ${maxWoodFortifiedSettlement})
+          WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN LEAST("wood" + ${woodCapitolSettlement} * "resourcesMultiplicator", ${maxWoodCapitolSettlement})
+        END`,
       })
       .getQuery();
 
-    await this.settlementsEntityRepository.manager.transaction(
-      async (entityManager) => {
-        await entityManager.query(query);
-      },
-    );
+    await this.settlementsEntityRepository.query(query);
 
     this.logger.log('Distributing resources to settlements FINISHED');
   }

@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsRelations, Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 
+import { include } from '~/common/utils';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 @Injectable()
@@ -26,7 +27,11 @@ export class UsersService {
   }
 
   findOneById(id: string, relations?: string[]): Promise<UsersEntity | null> {
-    return this.usersRepository.findOne({ where: { id }, relations });
+    return this.usersRepository.findOne({
+      select: include(this.usersRepository, ['gold', 'wood']),
+      where: { id },
+      relations,
+    });
   }
 
   async create(user: UsersEntity): Promise<UsersEntity> {
