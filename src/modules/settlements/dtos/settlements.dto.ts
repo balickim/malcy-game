@@ -1,17 +1,24 @@
-import { SettlementTypes } from '~/modules/settlements/entities/settlements.entity';
+import { GeoJSON } from 'typeorm';
 
-export class SettlementsDto {
+import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { SettlementTypesEnum } from '~/modules/settlements/entities/settlements.entity';
+import { TBasicUser } from '~/modules/users/types/users.types';
+
+export class PublicSettlementDto {
   id: string;
+  name: string;
+  location: GeoJSON;
+  type: SettlementTypesEnum;
+  user: TBasicUser;
+}
+
+export class PublicSettlementDtoWithConvertedLocation extends PublicSettlementDto {
   lat: number;
   lng: number;
-  name: string;
-  type: SettlementTypes;
-  user: {
-    createdAt: string;
-    deletedAt: string | null;
-    email: string;
-    id: string;
-    username: string;
-    updatedAt: string;
-  };
+}
+
+export class PrivateSettlementDto extends PublicSettlementDto {
+  gold: number;
+  wood: number;
+  army: ArmyEntity;
 }

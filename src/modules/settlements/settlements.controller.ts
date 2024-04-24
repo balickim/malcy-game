@@ -29,7 +29,6 @@ export class SettlementsController {
   @Get('/bounds')
   @ResponseMessage('Fetched Settlements Succesfully')
   async findInBounds(
-    @Request() req: IExpressRequestWithUser,
     @Query('southWestLat') southWestLat: string,
     @Query('southWestLng') southWestLng: string,
     @Query('northEastLat') northEastLat: string,
@@ -44,8 +43,7 @@ export class SettlementsController {
       lng: parseFloat(northEastLng),
     };
 
-    return await this.settlementsService.findSettlementsInBounds(
-      req.user,
+    return this.settlementsService.findSettlementsInBounds(
       southWest,
       northEast,
     );
@@ -64,10 +62,7 @@ export class SettlementsController {
     @Request() req: IExpressRequestWithUser,
     @Param() params: { id: string },
   ) {
-    return this.settlementsService.getUsersSettlementGarrisonById(
-      params.id,
-      req.user,
-    );
+    return this.settlementsService.getSettlementById(params.id, req.user);
   }
 
   @Post('/pick-up-army')

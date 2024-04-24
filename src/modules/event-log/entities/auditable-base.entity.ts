@@ -6,23 +6,23 @@ import {
 } from 'typeorm';
 
 export abstract class AuditableBaseEntity {
-  @Column({ default: 'system' })
+  @Column({ select: false, default: 'system' })
   createdBy: string;
 
-  @Column({ default: 'system' })
+  @Column({ select: false, default: 'system' })
   updatedBy: string;
 
-  @Column({ nullable: true })
+  @Column({ select: false, nullable: true })
   deletedBy?: string;
 
-  @Column()
+  @Column({ select: false })
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @Column({ select: false })
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ select: false })
   deletedAt?: Date;
 }

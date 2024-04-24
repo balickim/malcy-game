@@ -8,13 +8,13 @@ import { Reflector } from '@nestjs/core';
 
 import { convertGeoJSONToPoint } from '~/common/utils/postgis';
 import { IExpressRequestWithUser } from '~/modules/auth/guards/jwt.guard';
-import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
+import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
 
 export interface IExpressRequestWithUserAndSettlement
   extends IExpressRequestWithUser {
-  settlement: SettlementsEntity;
+  settlement: PrivateSettlementDto;
 }
 
 @Injectable()
@@ -36,7 +36,7 @@ export class NearSettlementLocationGuard implements CanActivate {
     const settlementId = request.body[settlementIdParam];
 
     const settlement =
-      await this.settlementsService.getSettlementById(settlementId);
+      await this.settlementsService.getPrivateSettlementById(settlementId);
     request.settlement = settlement;
 
     const isUserWithinRadius =

@@ -15,14 +15,14 @@ import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
-export enum SettlementTypes {
+export enum SettlementTypesEnum {
   MINING_TOWN = 'MINING_TOWN',
   CASTLE_TOWN = 'CASTLE_TOWN',
   FORTIFIED_SETTLEMENT = 'FORTIFIED_SETTLEMENT',
   CAPITOL_SETTLEMENT = 'CAPITOL_SETTLEMENT',
 }
 
-export enum ResourceType {
+export enum ResourceTypeEnum {
   wood = 'wood',
   gold = 'gold',
 }
@@ -31,19 +31,19 @@ export enum ResourceType {
 // resource values must be also changes in game.config.ts because this is evaluated before config
 @Check(`
   "gold" >= 0 AND "gold" <= CASE
-    WHEN "type" = '${SettlementTypes.MINING_TOWN}' THEN 4000
-    WHEN "type" = '${SettlementTypes.CASTLE_TOWN}' THEN 8000
-    WHEN "type" = '${SettlementTypes.FORTIFIED_SETTLEMENT}' THEN 16000
-    WHEN "type" = '${SettlementTypes.CAPITOL_SETTLEMENT}' THEN 100000
+    WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN 4000
+    WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN 8000
+    WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN 16000
+    WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN 100000
     ELSE 4000
   END
 `)
 @Check(`
   "wood" >= 0 AND "wood" <= CASE
-    WHEN "type" = '${SettlementTypes.MINING_TOWN}' THEN 1000
-    WHEN "type" = '${SettlementTypes.CASTLE_TOWN}' THEN 2000
-    WHEN "type" = '${SettlementTypes.FORTIFIED_SETTLEMENT}' THEN 4000
-    WHEN "type" = '${SettlementTypes.CAPITOL_SETTLEMENT}' THEN 80000
+    WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN 1000
+    WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN 2000
+    WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN 4000
+    WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN 80000
     ELSE 1000
   END
 `)
@@ -63,16 +63,16 @@ export class SettlementsEntity extends AuditableBaseEntity {
 
   @Column({
     type: 'enum',
-    enum: SettlementTypes,
-    default: SettlementTypes.MINING_TOWN,
+    enum: SettlementTypesEnum,
+    default: SettlementTypesEnum.MINING_TOWN,
   })
-  type: SettlementTypes;
+  type: SettlementTypesEnum;
 
-  @Column({ default: 0 })
+  @Column({ select: false, default: 0 })
   @Min(0)
   gold: number;
 
-  @Column({ default: 0 })
+  @Column({ select: false, default: 0 })
   @Min(0)
   wood: number;
 

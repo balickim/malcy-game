@@ -26,18 +26,18 @@ export class UsersEntity extends AuditableBaseEntity {
   username: string;
 
   @IsEmail()
-  @Column({ unique: true, nullable: false })
+  @Column({ select: false, unique: true, nullable: false })
   email: string;
 
   @Column({ select: false, nullable: false })
   password: string;
 
-  @Column({ default: 0 })
+  @Column({ select: false, default: 0 })
   @Min(0)
   @Max(100_000)
   gold: number;
 
-  @Column({ default: 0 })
+  @Column({ select: false, default: 0 })
   @Min(0)
   @Max(80_000)
   wood: number;

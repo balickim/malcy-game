@@ -2,10 +2,15 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GeoJSON, Repository } from 'typeorm';
 
+import { includeAll } from '~/common/utils';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
-import { SettlementsDto } from '~/modules/settlements/dtos/settlements.dto';
+import {
+  PrivateSettlementDto,
+  PublicSettlementDto,
+  PublicSettlementDtoWithConvertedLocation,
+} from '~/modules/settlements/dtos/settlements.dto';
 import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
@@ -58,10 +63,9 @@ export class SettlementsService {
   }
 
   async findSettlementsInBounds(
-    user: UsersEntity,
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
-  ): Promise<SettlementsDto[]> {
+  ): Promise<PublicSettlementDtoWithConvertedLocation[]> {
     try {
       const query = this.settlementsEntityRepository
         .createQueryBuilder('settlement')
@@ -69,13 +73,11 @@ export class SettlementsService {
           'settlement.id AS id',
           'settlement.name AS name',
           'settlement.type AS type',
+          'settlement.location AS location',
           'ST_X(settlement.location) AS lng',
           'ST_Y(settlement.location) AS lat',
         ])
         .leftJoinAndSelect('settlement.user', 'user')
-        .leftJoinAndSelect('settlement.army', 'army', 'user.id = :userId', {
-          userId: user.id,
-        })
         .where(
           `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
           {
@@ -89,37 +91,17 @@ export class SettlementsService {
       const rawResults = await query.getRawMany();
 
       return rawResults.map((result) => {
-        const hasArmy =
-          (result.army_swordsman !== null &&
-            result.army_swordsman !== undefined) ||
-          (result.army_archer !== null && result.army_archer !== undefined) ||
-          (result.army_knight !== null && result.army_knight !== undefined) ||
-          (result.army_luchador !== null &&
-            result.army_luchador !== undefined) ||
-          (result.army_archmage !== null && result.army_archmage !== undefined);
         return {
           id: result.id,
           name: result.name,
           type: result.type,
+          location: result.location,
           lng: result.lng,
           lat: result.lat,
           user: {
             id: result.user_id,
             username: result.user_username,
-            email: result.user_email,
-            createdAt: result.user_createdAt,
-            updatedAt: result.user_updatedAt,
-            deletedAt: result.user_deletedAt,
           },
-          army: hasArmy
-            ? {
-                swordsman: result.army_swordsman,
-                archer: result.army_archer,
-                knight: result.army_knight,
-                luchador: result.army_luchador,
-                archmage: result.army_archmage,
-              }
-            : null,
         };
       });
     } catch (e) {
@@ -129,37 +111,46 @@ export class SettlementsService {
     }
   }
 
-  async getUsersSettlementGarrisonById(id: string, user: UsersEntity) {
-    const settlement = await this.settlementsEntityRepository.findOne({
-      where: { id },
-      relations: ['user', 'army'],
-    });
+  async getPrivateSettlementById(id: string): Promise<PrivateSettlementDto> {
+    const settlement: PrivateSettlementDto =
+      await this.settlementsEntityRepository.findOne({
+        select: includeAll(this.settlementsEntityRepository),
+        where: { id },
+        relations: ['user', 'army'],
+      });
+
     if (!settlement)
       throw new NotFoundException(`Settlement not found with ID: ${id}`);
-
-    if (settlement.user.id !== user.id) {
-      throw new NotFoundException(
-        `User does not own settlement with ID: ${id}`,
-      );
-    }
 
     return settlement;
   }
 
-  async getSettlementById(id: string) {
+  async getPublicSettlementById(id: string): Promise<PublicSettlementDto> {
     const settlement = await this.settlementsEntityRepository.findOne({
       where: { id },
-      relations: ['user', 'army'],
+      relations: ['user'],
     });
     if (!settlement)
       throw new NotFoundException(`Settlement not found with ID: ${id}`);
 
     return settlement;
+  }
+
+  async getSettlementById(
+    id: string,
+    user: UsersEntity,
+  ): Promise<PublicSettlementDto | PrivateSettlementDto> {
+    const privateSettlement = await this.getPrivateSettlementById(id);
+    if (privateSettlement.user.id === user.id) {
+      return privateSettlement;
+    }
+
+    return this.toPublicSettlementDto(privateSettlement);
   }
 
   async pickUpArmy(
     pickUpArmyDto: TransferArmyDto,
-    settlement: SettlementsEntity,
+    settlement: PrivateSettlementDto,
   ) {
     if (
       settlement.army[UnitType.SWORDSMAN] < pickUpArmyDto[UnitType.SWORDSMAN] ||
@@ -210,7 +201,7 @@ export class SettlementsService {
 
   async putDownArmy(
     putDownArmyDto: TransferArmyDto,
-    settlement: SettlementsEntity,
+    settlement: PrivateSettlementDto,
   ) {
     const userArmy = await this.armyEntityRepository.findOne({
       where: { userId: settlement.user.id },
@@ -256,6 +247,18 @@ export class SettlementsService {
         [UnitType.LUCHADOR]: settlement.army[UnitType.LUCHADOR],
         [UnitType.ARCHMAGE]: settlement.army[UnitType.ARCHMAGE],
       },
+    };
+  }
+
+  private toPublicSettlementDto(
+    settlement: PrivateSettlementDto,
+  ): PublicSettlementDto {
+    return {
+      id: settlement.id,
+      name: settlement.name,
+      location: settlement.location,
+      type: settlement.type,
+      user: settlement.user,
     };
   }
 }

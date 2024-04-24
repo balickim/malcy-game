@@ -18,7 +18,7 @@ import {
   RequestRecruitmentDto,
   ResponseRecruitmentDto,
 } from '~/modules/recruitments/dtos/recruitments.dto';
-import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
+import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
@@ -84,7 +84,7 @@ export class RecruitmentsService implements OnModuleInit {
 
   public async startRecruitment(
     recruitDto: RequestRecruitmentDto,
-    settlement: SettlementsEntity,
+    settlement: PrivateSettlementDto,
   ) {
     const unitRecruitmentTime =
       this.configService.gameConfig.SETTLEMENT[settlement.type].RECRUITMENT[
@@ -142,7 +142,7 @@ export class RecruitmentsService implements OnModuleInit {
     user: UsersEntity,
   ) {
     const settlement =
-      await this.settlementsService.getSettlementById(settlementId);
+      await this.settlementsService.getPublicSettlementById(settlementId);
     if (settlement.user.id !== user.id) throw new UnauthorizedException();
 
     const queue = new Queue<ResponseRecruitmentDto>(
