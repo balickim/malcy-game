@@ -1,4 +1,5 @@
 import { UnitType } from '~/modules/armies/entities/armies.entity';
+import { IResource } from '~/modules/config/game.config';
 
 export class RequestRecruitmentDto {
   settlementId: string;
@@ -12,4 +13,5 @@ export class ResponseRecruitmentDto {
   unitType: UnitType;
   unitRecruitmentTime: number;
   finishesOn: Date;
+  lockedResources: IResource;
 }

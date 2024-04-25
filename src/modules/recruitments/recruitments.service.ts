@@ -19,6 +19,7 @@ import {
   ResponseRecruitmentDto,
 } from '~/modules/recruitments/dtos/recruitments.dto';
 import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
+import { ResourceTypeEnum } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
@@ -97,6 +98,17 @@ export class RecruitmentsService implements OnModuleInit {
       );
     }
 
+    const unitCost =
+      this.configService.gameConfig.SETTLEMENT[settlement.type].RECRUITMENT[
+        recruitDto.unitType
+      ].COST ?? undefined;
+    const goldCost = unitCost[ResourceTypeEnum.gold] * recruitDto.unitCount;
+    const woodCost = unitCost[ResourceTypeEnum.wood] * recruitDto.unitCount;
+
+    if (settlement.gold < goldCost || settlement.wood < woodCost) {
+      throw new BadRequestException('You dont have enough resources');
+    }
+
     const unfinishedJobs = await this.getUnfinishedRecruitmentsBySettlementId(
       recruitDto.settlementId,
     );
@@ -109,6 +121,10 @@ export class RecruitmentsService implements OnModuleInit {
       }
     }
 
+    const lockedResources = {
+      [ResourceTypeEnum.gold]: Math.max(-goldCost),
+      [ResourceTypeEnum.wood]: Math.max(-woodCost),
+    };
     const finishesOn = new Date(
       Date.now() + recruitDto.unitCount * unitRecruitmentTime + totalDelayMs,
     );
@@ -116,7 +132,13 @@ export class RecruitmentsService implements OnModuleInit {
       ...recruitDto,
       unitRecruitmentTime,
       finishesOn,
+      lockedResources,
     };
+
+    await this.settlementsService.changeResources(
+      recruitDto.settlementId,
+      lockedResources,
+    );
 
     const queue = new Queue<ResponseRecruitmentDto>(
       bullSettlementRecruitmentQueueName(recruitDto.settlementId),
@@ -150,7 +172,28 @@ export class RecruitmentsService implements OnModuleInit {
       { connection: this.redis },
     );
     const job: Job<ResponseRecruitmentDto> = await queue.getJob(jobId);
-    await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
+    const recruitmentProgress = await this.getRecruitmentProgress(
+      job.data,
+      job.id,
+    );
+    if (recruitmentProgress < job.data.unitCount) {
+      await this.saveRecruitmentProgress(job.data, jobId, job.data.unitCount); // save recruitment progress as it's goal to be sure it will not recruit more
+
+      const goldPerUnit =
+        Math.abs(job.data.lockedResources[ResourceTypeEnum.gold]) /
+        job.data.unitCount;
+      const woodPerUnit =
+        Math.abs(job.data.lockedResources[ResourceTypeEnum.wood]) /
+        job.data.unitCount;
+
+      await this.settlementsService.changeResources(settlementId, {
+        [ResourceTypeEnum.gold]:
+          goldPerUnit * (job.data.unitCount - Number(job.progress)),
+        [ResourceTypeEnum.wood]:
+          woodPerUnit * (job.data.unitCount - Number(job.progress)),
+      });
+    }
+
     return 'success';
   }
 

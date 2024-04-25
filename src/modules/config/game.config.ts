@@ -6,13 +6,13 @@ import {
   SettlementTypesEnum,
 } from '~/modules/settlements/entities/settlements.entity';
 
-interface ResourceCosts {
-  [ResourceTypeEnum.gold]?: number;
-  [ResourceTypeEnum.wood]?: number;
+export interface IResource {
+  [ResourceTypeEnum.gold]: number;
+  [ResourceTypeEnum.wood]: number;
 }
 
 interface UnitRecruitment {
-  COST: ResourceCosts;
+  COST: IResource;
   TIME_MS: number;
 }
 
@@ -24,21 +24,11 @@ interface Recruitment {
   [UnitType.ARCHMAGE]?: UnitRecruitment;
 }
 
-interface ResourcesCap {
-  [ResourceTypeEnum.gold]: number;
-  [ResourceTypeEnum.wood]: number;
-}
-
-interface ResourceGenerationBase {
-  [ResourceTypeEnum.wood]: number;
-  [ResourceTypeEnum.gold]: number;
-}
-
 interface SettlementConfig {
   MAX: number | 'infinite';
   RECRUITMENT: Recruitment;
-  RESOURCES_CAP: ResourcesCap;
-  RESOURCE_GENERATION_BASE: ResourceGenerationBase;
+  RESOURCES_CAP: IResource;
+  RESOURCE_GENERATION_BASE: IResource;
 }
 
 export interface GameConfig {

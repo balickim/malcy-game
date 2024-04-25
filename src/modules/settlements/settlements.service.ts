@@ -2,8 +2,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GeoJSON, Repository } from 'typeorm';
 
-import { includeAll } from '~/common/utils';
+import { include, includeAll } from '~/common/utils';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
+import { ConfigService } from '~/modules/config/config.service';
+import { IResource } from '~/modules/config/game.config';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
 import {
@@ -12,7 +14,11 @@ import {
   PublicSettlementDtoWithConvertedLocation,
 } from '~/modules/settlements/dtos/settlements.dto';
 import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
-import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
+import {
+  ResourceTypeEnum,
+  SettlementsEntity,
+  SettlementTypesEnum,
+} from '~/modules/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
@@ -27,6 +33,7 @@ export class SettlementsService {
     private armyEntityRepository: Repository<ArmyEntity>,
     private userLocationService: UserLocationService,
     private eventLogService: EventLogService,
+    private configService: ConfigService,
   ) {}
 
   async createSettlement(settlementData: { name: string }, user: UsersEntity) {
@@ -249,6 +256,65 @@ export class SettlementsService {
       },
     };
   }
+
+  changeResources = async (settlementId: string, resourcesUsed: IResource) => {
+    const settlement = await this.settlementsEntityRepository.findOne({
+      select: include(this.settlementsEntityRepository, ['gold', 'wood']),
+      where: {
+        id: settlementId,
+      },
+    });
+
+    const maxGoldMiningTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypesEnum.MINING_TOWN]
+        .RESOURCES_CAP[ResourceTypeEnum.gold];
+    const maxGoldCastleTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypesEnum.CASTLE_TOWN]
+        .RESOURCES_CAP[ResourceTypeEnum.gold];
+    const maxGoldFortifiedSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypesEnum.FORTIFIED_SETTLEMENT
+      ].RESOURCES_CAP[ResourceTypeEnum.gold];
+    const maxGoldCapitolSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypesEnum.CAPITOL_SETTLEMENT
+      ].RESOURCES_CAP[ResourceTypeEnum.gold];
+
+    const maxWoodMiningTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypesEnum.MINING_TOWN]
+        .RESOURCES_CAP[ResourceTypeEnum.wood];
+    const maxWoodCastleTown =
+      this.configService.gameConfig.SETTLEMENT[SettlementTypesEnum.CASTLE_TOWN]
+        .RESOURCES_CAP[ResourceTypeEnum.wood];
+    const maxWoodFortifiedSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypesEnum.FORTIFIED_SETTLEMENT
+      ].RESOURCES_CAP[ResourceTypeEnum.wood];
+    const maxWoodCapitolSettlement =
+      this.configService.gameConfig.SETTLEMENT[
+        SettlementTypesEnum.CAPITOL_SETTLEMENT
+      ].RESOURCES_CAP[ResourceTypeEnum.wood];
+
+    return this.armyEntityRepository
+      .createQueryBuilder()
+      .update(SettlementsEntity)
+      .set({
+        gold: () => `CASE 
+          WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN LEAST("gold" + ${resourcesUsed[ResourceTypeEnum.gold]}, ${maxGoldMiningTown})
+          WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN LEAST("gold" + ${resourcesUsed[ResourceTypeEnum.gold]}, ${maxGoldCastleTown})
+          WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN LEAST("gold" + ${resourcesUsed[ResourceTypeEnum.gold]}, ${maxGoldFortifiedSettlement})
+          WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN LEAST("gold" + ${resourcesUsed[ResourceTypeEnum.gold]}, ${maxGoldCapitolSettlement})
+        END`,
+        wood: () => `CASE 
+          WHEN "type" = '${SettlementTypesEnum.MINING_TOWN}' THEN LEAST("wood" + ${resourcesUsed[ResourceTypeEnum.wood]}, ${maxWoodMiningTown})
+          WHEN "type" = '${SettlementTypesEnum.CASTLE_TOWN}' THEN LEAST("wood" + ${resourcesUsed[ResourceTypeEnum.wood]}, ${maxWoodCastleTown})
+          WHEN "type" = '${SettlementTypesEnum.FORTIFIED_SETTLEMENT}' THEN LEAST("wood" + ${resourcesUsed[ResourceTypeEnum.wood]}, ${maxWoodFortifiedSettlement})
+          WHEN "type" = '${SettlementTypesEnum.CAPITOL_SETTLEMENT}' THEN LEAST("wood" + ${resourcesUsed[ResourceTypeEnum.wood]}, ${maxWoodCapitolSettlement})
+        END`,
+      })
+      .where('id = :id', { id: settlement.id })
+      .execute();
+  };
 
   private toPublicSettlementDto(
     settlement: PrivateSettlementDto,
