@@ -11,6 +11,8 @@ import {
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { GroupsMembersEntity } from '~/modules/chat/entities/groups-members.entity';
+import { MessagesEntity } from '~/modules/chat/entities/messages.entity';
 import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 
@@ -47,6 +49,12 @@ export class UsersEntity extends AuditableBaseEntity {
 
   @OneToOne(() => ArmyEntity, (army) => army.user)
   army: ArmyEntity;
+
+  @OneToMany(() => MessagesEntity, (message) => message.user)
+  sentMessages: MessagesEntity[];
+
+  @OneToMany(() => GroupsMembersEntity, (groupMember) => groupMember.user)
+  groups: GroupsMembersEntity[];
 
   @BeforeInsert()
   generateId() {

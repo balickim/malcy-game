@@ -7,6 +7,7 @@ import { AppService } from '~/app.service';
 import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/modules/armies/armies.module';
 import { AuthModule } from '~/modules/auth/auth.module';
+import { ChatModule } from '~/modules/chat/chat.module';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { RecruitmentsModule } from '~/modules/recruitments/recruitments.module';
@@ -31,6 +32,7 @@ import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/pr
     RecruitmentsModule,
     ResourcesModule,
     EventLogModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

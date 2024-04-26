@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
+import { ConversationsEntity } from '~/modules/chat/entities/conversations.entity';
+import { GroupsMembersEntity } from '~/modules/chat/entities/groups-members.entity';
+import { GroupsEntity } from '~/modules/chat/entities/groups.entity';
+import { MessagesEntity } from '~/modules/chat/entities/messages.entity';
 import { ConfigModule } from '~/modules/config/config.module';
 import { ConfigService } from '~/modules/config/config.service';
 import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
@@ -40,6 +44,10 @@ import { UsersModule } from '~/modules/users/users.module';
             SettlementsEntity,
             ArmyEntity,
             EventLogEntity,
+            ConversationsEntity,
+            GroupsEntity,
+            GroupsMembersEntity,
+            MessagesEntity,
           ],
           subscribers: [EventLogSubscriber],
         };

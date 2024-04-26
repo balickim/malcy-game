@@ -13,3 +13,10 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
+
+export interface IJwtUser {
+  id: string;
+  username: string;
+  iat: number;
+  exp: number;
+}
