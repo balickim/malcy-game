@@ -67,6 +67,7 @@ export class ChatGateway {
   createMessage(data: RequestMessageDto, user: IJwtUser): ResponseMessageDto {
     return {
       ...data,
+      createdAt: new Date(),
       user,
     };
   }

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { RequestMessageDto } from '~/modules/chat/dtos/request-message.dto';
+import { ResponseMessageDto } from '~/modules/chat/dtos/response-message.dto';
 import { MessagesEntity } from '~/modules/chat/entities/messages.entity';
 import { IJwtUser } from '~/modules/users/dtos/users.dto';
 
@@ -15,11 +15,12 @@ export class ChatService {
     private messagesEntityRepository: Repository<MessagesEntity>,
   ) {}
 
-  public async saveMessage(messageDto: RequestMessageDto, user: IJwtUser) {
+  public async saveMessage(messageDto: ResponseMessageDto, user: IJwtUser) {
     this.logger.log(`NEW MESSAGE IN CONVERSATION ${messageDto.conversationId}`);
     return this.messagesEntityRepository.insert({
       user,
       content: messageDto.content,
+      createdAt: messageDto.createdAt,
       conversation: { id: messageDto.conversationId },
     });
   }
@@ -33,7 +34,8 @@ export class ChatService {
       where: { conversation: { id: conversationId } },
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'ASC' },
+      relations: ['user'],
     });
   }
 }
