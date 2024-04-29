@@ -30,12 +30,20 @@ export class ChatService {
     pageNumber: number,
   ) {
     const pageSize = 10;
-    return this.messagesEntityRepository.find({
+    const [result] = await this.messagesEntityRepository.findAndCount({
       where: { conversation: { id: conversationId } },
       skip: (pageNumber - 1) * pageSize,
-      take: pageSize,
-      order: { createdAt: 'ASC' },
+      take: pageSize + 1,
+      order: { createdAt: 'DESC' },
       relations: ['user'],
     });
+
+    const hasNextPage = result.length > pageSize;
+    const messages = hasNextPage ? result.slice(0, -1) : result;
+
+    return {
+      messages,
+      nextPage: hasNextPage ? Number(pageNumber) + 1 : undefined,
+    };
   }
 }

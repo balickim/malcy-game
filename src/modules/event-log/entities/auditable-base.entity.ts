@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
+  Index,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -15,6 +16,7 @@ export abstract class AuditableBaseEntity {
   @Column({ select: false, nullable: true })
   deletedBy?: string;
 
+  @Index()
   @Column({ select: false })
   @CreateDateColumn()
   createdAt: Date;
