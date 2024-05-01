@@ -22,7 +22,7 @@ export class ConfigService {
     DB_SYNCHRONIZE: bool({ default: false, devDefault: true }),
     REDIS_HOST: str(),
     REDIS_PORT: num(),
-    REDIS_PASSWORD: str(),
+    REDIS_PASSWORD: str({ default: 'password' }),
   });
 
   get appConfig() {

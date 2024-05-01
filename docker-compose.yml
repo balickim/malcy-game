@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   postgres:
+    container_name: postgres
     image: postgis/postgis:14-3.2
     restart: unless-stopped
     environment:
@@ -10,25 +11,27 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
     ports:
-      - '${DB_PORT}:5432'
+      - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
   redis:
+    container_name: redis
     image: redis:6.2-alpine
     restart: unless-stopped
     environment:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - '${REDIS_PORT}:6379'
+      - "6379:6379"
 
-  nestjs-app:
+  malcy-backend:
+    container_name: malcy-backend
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '${PORT}:3000'
+      - "${PORT}:${PORT}"
     environment:
       FE_APP_HOST: ${FE_APP_HOST}
       PORT: ${PORT}
@@ -43,8 +46,7 @@ services:
       DB_SYNCHRONIZE: ${DB_SYNCHRONIZE}
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    depends_on:
+    links:
       - postgres
       - redis
 
