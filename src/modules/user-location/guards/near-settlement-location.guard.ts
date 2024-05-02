@@ -54,7 +54,6 @@ export class NearSettlementLocationGuard implements CanActivate {
     }
 
     request.user._IsNear = true;
-    console.log(request.user);
     return true;
   }
 }
