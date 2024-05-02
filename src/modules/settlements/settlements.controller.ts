@@ -6,18 +6,15 @@ import {
   Post,
   Query,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { IsWithinLocation } from '~/common/decorators/is-within-location.decorator';
+import { EnsureWithinLocation } from '~/common/decorators/ensure-within-location.decorator';
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
 import { IExpressRequestWithUser } from '~/modules/auth/guards/jwt.guard';
 import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
-import {
-  IExpressRequestWithUserAndSettlement,
-  NearSettlementLocationGuard,
-} from '~/modules/user-location/guards/near-settlement-location.guard';
+import { IExpressRequestWithUserAndSettlement } from '~/modules/user-location/guards/near-settlement-location.guard';
+import { IJwtUser } from '~/modules/users/dtos/users.dto';
 
 import { SettlementsService } from './settlements.service';
 
@@ -51,7 +48,7 @@ export class SettlementsController {
 
   @Post('/')
   async createSettlement(
-    @Request() req: IExpressRequestWithUser,
+    @Request() req: IExpressRequestWithUser<IJwtUser>,
     @Body() settlementData: { name: string },
   ) {
     return this.settlementsService.createSettlement(settlementData, req.user);
@@ -59,15 +56,14 @@ export class SettlementsController {
 
   @Get(':id')
   async getSettlementById(
-    @Request() req: IExpressRequestWithUser,
+    @Request() req: IExpressRequestWithUser<IJwtUser>,
     @Param() params: { id: string },
   ) {
     return this.settlementsService.getSettlementById(params.id, req.user);
   }
 
   @Post('/pick-up-army')
-  @UseGuards(NearSettlementLocationGuard)
-  @IsWithinLocation('settlementId')
+  @EnsureWithinLocation('settlementId', 'block')
   @ResponseMessage('Army transferred successfully')
   async pickUpArmy(
     @Request() req: IExpressRequestWithUserAndSettlement,
@@ -77,8 +73,7 @@ export class SettlementsController {
   }
 
   @Post('/put-down-army')
-  @UseGuards(NearSettlementLocationGuard)
-  @IsWithinLocation('settlementId')
+  @EnsureWithinLocation('settlementId', 'block')
   @ResponseMessage('Army transferred successfully')
   async putDownArmy(
     @Request() req: IExpressRequestWithUserAndSettlement,

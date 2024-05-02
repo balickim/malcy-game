@@ -77,7 +77,7 @@ export class AuthService {
     return this.generateToken(user);
   }
 
-  async validateUserById(id: string): Promise<UsersEntity | null> {
+  async validateUserById(id: string) {
     return this.usersService.findOneById(id);
   }
 

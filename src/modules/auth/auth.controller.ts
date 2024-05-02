@@ -20,6 +20,7 @@ import {
   IExpressRequestWithUser,
   RefreshTokenGuard,
 } from '~/modules/auth/guards/jwt.guard';
+import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 @Public()
 @ApiTags('auth')
@@ -30,7 +31,7 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(
-    @Request() req: IExpressRequestWithUser,
+    @Request() req: IExpressRequestWithUser<UsersEntity>,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     const tokenResponse = await this.authService.login(req.user);
@@ -57,7 +58,7 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   async refresh(
-    @Req() req: IExpressRequestWithUser,
+    @Req() req: IExpressRequestWithUser<UsersEntity>,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     const user = req.user;

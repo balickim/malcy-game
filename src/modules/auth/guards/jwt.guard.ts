@@ -9,10 +9,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request as ExpressRequest } from 'express';
 
 import { AuthService } from '~/modules/auth/auth.service';
-import { UsersEntity } from '~/modules/users/entities/users.entity';
 
-export interface IExpressRequestWithUser extends ExpressRequest {
-  user: UsersEntity;
+export interface IExpressRequestWithUser<T> extends ExpressRequest {
+  user: T;
 }
 
 @Injectable()

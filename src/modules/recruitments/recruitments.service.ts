@@ -21,6 +21,7 @@ import {
 import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
 import { ResourceTypeEnum } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
+import { IJwtUser } from '~/modules/users/dtos/users.dto';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 const bullSettlementRecruitmentQueueName = (settlementId: string) =>
@@ -161,7 +162,7 @@ export class RecruitmentsService implements OnModuleInit {
   public async cancelRecruitment(
     settlementId: string,
     jobId: string,
-    user: UsersEntity,
+    user: IJwtUser,
   ) {
     const settlement =
       await this.settlementsService.getPublicSettlementById(settlementId);

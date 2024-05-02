@@ -11,9 +11,10 @@ import { IExpressRequestWithUser } from '~/modules/auth/guards/jwt.guard';
 import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
+import { IJwtUser } from '~/modules/users/dtos/users.dto';
 
 export interface IExpressRequestWithUserAndSettlement
-  extends IExpressRequestWithUser {
+  extends IExpressRequestWithUser<IJwtUser> {
   settlement: PrivateSettlementDto;
 }
 
@@ -21,7 +22,7 @@ export interface IExpressRequestWithUserAndSettlement
 export class NearSettlementLocationGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private settlementsService: SettlementsService, // Ensure these services are provided
+    private settlementsService: SettlementsService,
     private userLocationService: UserLocationService,
   ) {}
 
@@ -33,8 +34,9 @@ export class NearSettlementLocationGuard implements CanActivate {
       'settlementIdParam',
       context.getHandler(),
     );
+    const mode =
+      this.reflector.get<string>('mode', context.getHandler()) || 'block';
     const settlementId = request.body[settlementIdParam];
-
     const settlement =
       await this.settlementsService.getPrivateSettlementById(settlementId);
     request.settlement = settlement;
@@ -46,9 +48,13 @@ export class NearSettlementLocationGuard implements CanActivate {
       });
 
     if (!isUserWithinRadius) {
-      throw new BadRequestException('You are too far');
+      if (mode === 'block') {
+        throw new BadRequestException('You are too far');
+      }
     }
 
+    request.user._IsNear = true;
+    console.log(request.user);
     return true;
   }
 }

@@ -20,6 +20,7 @@ import {
   SettlementTypesEnum,
 } from '~/modules/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
+import { IJwtUser } from '~/modules/users/dtos/users.dto';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 @Injectable()
@@ -36,7 +37,7 @@ export class SettlementsService {
     private configService: ConfigService,
   ) {}
 
-  async createSettlement(settlementData: { name: string }, user: UsersEntity) {
+  async createSettlement(settlementData: { name: string }, user: IJwtUser) {
     const userLocation = await this.userLocationService.getUserLocation({
       userId: user.id,
     });
@@ -145,7 +146,7 @@ export class SettlementsService {
 
   async getSettlementById(
     id: string,
-    user: UsersEntity,
+    user: IJwtUser,
   ): Promise<PublicSettlementDto | PrivateSettlementDto> {
     const privateSettlement = await this.getPrivateSettlementById(id);
     if (privateSettlement.user.id === user.id) {

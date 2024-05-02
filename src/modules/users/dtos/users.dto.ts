@@ -19,4 +19,5 @@ export interface IJwtUser {
   username: string;
   iat: number;
   exp: number;
+  _IsNear?: boolean;
 }
