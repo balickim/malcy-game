@@ -9,6 +9,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request as ExpressRequest } from 'express';
 
 import { AuthService } from '~/modules/auth/auth.service';
+import { UsersService } from '~/modules/users/users.service';
 
 export interface IExpressRequestWithUser<T> extends ExpressRequest {
   user: T;
@@ -34,7 +35,10 @@ export class JwtGuard extends AuthGuard('jwt') {
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -51,6 +55,7 @@ export class RefreshTokenGuard implements CanActivate {
       throw new BadRequestException('Invalid token');
     }
 
+    this.usersService.setActionTimestamp(user);
     request.user = user;
     return true;
   }

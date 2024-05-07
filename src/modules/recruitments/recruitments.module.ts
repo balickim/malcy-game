@@ -10,11 +10,13 @@ import { RecruitmentsService } from '~/modules/recruitments/recruitments.service
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
+import { UsersModule } from '~/modules/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ArmyEntity, SettlementsEntity, EventLogEntity]),
     ConfigModule,
+    UsersModule,
   ],
   controllers: [RecruitmentsController],
   providers: [

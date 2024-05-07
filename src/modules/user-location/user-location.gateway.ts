@@ -1,10 +1,12 @@
 import { Logger } from '@nestjs/common';
 import {
+  ConnectedSocket,
+  MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 import {
   IUpdateLocationParams,
@@ -32,17 +34,28 @@ export class UserLocationGateway {
 
   constructor(private userLocationService: UserLocationService) {}
 
-  @SubscribeMessage('position')
-  async handleMessage(client: any, payload: IUpdateLocationParams) {
+  @SubscribeMessage('playerPosition')
+  async handleMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: IUpdateLocationParams,
+  ) {
     try {
       await this.userLocationService.updateLocation(payload);
+      this.logger.debug(`LOCATION UPDATED FOR USER: ${payload.userId}`);
+
+      const nearbyUsers = await this.userLocationService.getUsersInRadius(
+        payload.location.lng,
+        payload.location.lat,
+        5,
+        'km',
+      );
+
+      client.emit('otherPlayersPositions', nearbyUsers);
     } catch (e) {
       this.logger.error(
         `ERROR UPDATING LOCATION FOR USER: ${payload.userId} --- ${e}`,
       );
-      return client.emit('location:error', e.message);
+      client.emit('location:error', e.message);
     }
-    this.logger.debug(`LOCATION UPDATED FOR USER: ${payload.userId}`);
-    return 'location updated';
   }
 }

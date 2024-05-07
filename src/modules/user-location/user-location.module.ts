@@ -6,6 +6,7 @@ import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
 import { UserLocationGateway } from '~/modules/user-location/user-location.gateway';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
+import { UsersModule } from '~/modules/users/users.module';
 import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.modul
     CacheRedisProviderModule,
     TypeOrmModule.forFeature([EventLogEntity]),
     ConfigModule,
+    UsersModule,
   ],
   providers: [UserLocationService, UserLocationGateway, EventLogService],
 })

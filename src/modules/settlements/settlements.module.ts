@@ -7,6 +7,7 @@ import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsSubscriber } from '~/modules/settlements/settlements.subscriber';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
+import { UsersModule } from '~/modules/users/users.module';
 
 import { Settlements } from './settlements';
 import { SettlementsController } from './settlements.controller';
@@ -18,6 +19,7 @@ import { SettlementsService } from './settlements.service';
     TypeOrmModule.forFeature([SettlementsEntity, ArmyEntity]),
     EventLogModule,
     ConfigModule,
+    UsersModule,
   ],
   controllers: [SettlementsController],
   providers: [

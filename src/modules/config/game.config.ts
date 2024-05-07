@@ -34,6 +34,7 @@ interface SettlementConfig {
 export interface GameConfig {
   DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS: number;
   DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND: number;
+  USER_IS_ONLINE_SECONDS: number;
   DEFAULT_RESOURCE_DISPOSITION_RATE: CronExpression;
   SETTLEMENT: {
     [SettlementTypesEnum.MINING_TOWN]: SettlementConfig;
@@ -46,6 +47,7 @@ export interface GameConfig {
 export const gameConfig = (): GameConfig => ({
   DEFAULT_MAX_RADIUS_TO_TAKE_ACTION_METERS: 30,
   DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND: 30,
+  USER_IS_ONLINE_SECONDS: 60,
   DEFAULT_RESOURCE_DISPOSITION_RATE: CronExpression.EVERY_10_SECONDS,
 
   SETTLEMENT: {

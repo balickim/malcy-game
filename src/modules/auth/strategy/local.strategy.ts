@@ -4,10 +4,14 @@ import { Strategy } from 'passport-local';
 
 import { AuthService } from '~/modules/auth/auth.service';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
+import { UsersService } from '~/modules/users/users.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {
     super({
       usernameField: 'email',
     });
@@ -18,6 +22,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException();
     }
+    this.usersService.setActionTimestamp(user);
     return user;
   }
 }

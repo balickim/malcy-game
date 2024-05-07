@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { ConfigService } from '~/modules/config/config.service';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
+import { UsersService } from '~/modules/users/users.service';
 
 interface LatLng {
   lat: number;
@@ -26,6 +27,7 @@ export class UserLocationService {
     @InjectRedis() private readonly redis: Redis,
     private configService: ConfigService,
     private eventLogService: EventLogService,
+    private readonly usersService: UsersService,
   ) {}
 
   public async updateLocation(params: IUpdateLocationParams) {
@@ -122,5 +124,41 @@ export class UserLocationService {
     await this.redis.zrem(userLocationsKey, tempLocationKey);
 
     return distance ? Number(distance) : 0;
+  }
+
+  public async getUsersInRadius(
+    longitude: number,
+    latitude: number,
+    radius: number,
+    unit: string,
+  ) {
+    try {
+      const results = await this.redis.georadius(
+        userLocationsKey,
+        longitude,
+        latitude,
+        radius,
+        unit,
+        'WITHCOORD',
+      );
+
+      const usersDetails = results.map(async (result) => {
+        const userId = result[0];
+        const coordinates = result[1];
+        const isOnline = await this.usersService.getIsOnline(userId);
+        if (!isOnline) return undefined;
+        return {
+          userId,
+          longitude: coordinates[0],
+          latitude: coordinates[1],
+        };
+      });
+
+      const filteredUsers = await Promise.all(usersDetails);
+      return filteredUsers.filter((user) => user !== undefined);
+    } catch (error) {
+      this.logger.error('Error fetching users in radius:', error);
+      throw error;
+    }
   }
 }

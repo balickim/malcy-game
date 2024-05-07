@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GeoJSON, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { include, includeAll } from '~/common/utils';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
@@ -21,7 +21,6 @@ import {
 } from '~/modules/settlements/entities/settlements.entity';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
 import { IJwtUser } from '~/modules/users/dtos/users.dto';
-import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 @Injectable()
 export class SettlementsService {
