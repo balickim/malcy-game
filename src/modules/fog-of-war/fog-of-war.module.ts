@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { DiscoveredAreaEntity } from '~/modules/fog-of-war/entities/discovered-area.entity';
+import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { VisibleAreaEntity } from '~/modules/fog-of-war/entities/visible-area.entity';
 import { FogOfWarController } from '~/modules/fog-of-war/fog-of-war.controller';
 import { FogOfWarService } from '~/modules/fog-of-war/fog-of-war.service';
@@ -11,7 +12,11 @@ import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.modul
   controllers: [FogOfWarController],
   imports: [
     CacheRedisProviderModule,
-    TypeOrmModule.forFeature([DiscoveredAreaEntity, VisibleAreaEntity]),
+    TypeOrmModule.forFeature([
+      DiscoveredAreaEntity,
+      VisibleAreaEntity,
+      DiscoveredSettlementsEntity,
+    ]),
   ],
   providers: [FogOfWarService],
   exports: [TypeOrmModule, FogOfWarService],

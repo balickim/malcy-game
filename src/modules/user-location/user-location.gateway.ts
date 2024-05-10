@@ -8,6 +8,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { ConfigService } from '~/modules/config/config.service';
+import { FogOfWarService } from '~/modules/fog-of-war/fog-of-war.service';
+import { SettlementsService } from '~/modules/settlements/settlements.service';
 import {
   IUpdateLocationParams,
   UserLocationService,
@@ -32,7 +35,12 @@ export class UserLocationGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private userLocationService: UserLocationService) {}
+  constructor(
+    private userLocationService: UserLocationService,
+    private settlementsService: SettlementsService,
+    private configService: ConfigService,
+    private fogOfWarService: FogOfWarService,
+  ) {}
 
   @SubscribeMessage('playerPosition')
   async handleMessage(
@@ -46,11 +54,24 @@ export class UserLocationGateway {
       const nearbyUsers = await this.userLocationService.getUsersInRadius(
         payload.location.lng,
         payload.location.lat,
-        5,
-        'km',
+        this.configService.gameConfig.PLAYER_DISCOVER_RADIUS_METERS,
+        'm',
       );
 
       client.emit('otherPlayersPositions', nearbyUsers);
+
+      const nearbySettlements =
+        await this.settlementsService.findSettlementsInRadius(
+          payload.location,
+          this.configService.gameConfig.PLAYER_DISCOVER_RADIUS_METERS,
+        );
+
+      for (const settlement of nearbySettlements) {
+        await this.fogOfWarService.discoverSettlement(
+          payload.userId,
+          settlement,
+        );
+      }
     } catch (e) {
       this.logger.error(
         `ERROR UPDATING LOCATION FOR USER: ${payload.userId} --- ${e}`,

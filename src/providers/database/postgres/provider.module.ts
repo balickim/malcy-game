@@ -12,6 +12,7 @@ import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { EventLogSubscriber } from '~/modules/event-log/event-log.subscriber';
 import { DiscoveredAreaEntity } from '~/modules/fog-of-war/entities/discovered-area.entity';
+import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { VisibleAreaEntity } from '~/modules/fog-of-war/entities/visible-area.entity';
 import { FogOfWarModule } from '~/modules/fog-of-war/fog-of-war.module';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
@@ -54,6 +55,7 @@ import { UsersModule } from '~/modules/users/users.module';
             MessagesEntity,
             DiscoveredAreaEntity,
             VisibleAreaEntity,
+            DiscoveredSettlementsEntity,
           ],
           subscribers: [EventLogSubscriber],
         };

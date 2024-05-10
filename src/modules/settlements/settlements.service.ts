@@ -70,6 +70,7 @@ export class SettlementsService {
   }
 
   async findSettlementsInBounds(
+    discoveredByUserId: string,
     southWest: { lat: number; lng: number },
     northEast: { lat: number; lng: number },
   ): Promise<PublicSettlementDtoWithConvertedLocation[]> {
@@ -85,7 +86,14 @@ export class SettlementsService {
           'ST_Y(settlement.location) AS lat',
         ])
         .leftJoinAndSelect('settlement.user', 'user')
-        .where(
+        .leftJoin(
+          'discoveredSettlements',
+          'ds',
+          'ds.settlementId = settlement.id AND ds.discoveredByUserId = :discoveredByUserId',
+          { discoveredByUserId },
+        )
+        .where('ds.id IS NOT NULL')
+        .andWhere(
           `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
           {
             southWestLng: southWest.lng,
@@ -326,5 +334,24 @@ export class SettlementsService {
       type: settlement.type,
       user: settlement.user,
     };
+  }
+
+  public async findSettlementsInRadius(
+    location: { lat: number; lng: number },
+    radius: number,
+  ): Promise<SettlementsEntity[]> {
+    return this.settlementsEntityRepository
+      .createQueryBuilder('settlement')
+      .leftJoinAndSelect('settlement.user', 'user')
+      .addSelect('user.id')
+      .where(
+        'ST_DWithin(settlement.location, ST_MakePoint(:lng, :lat)::geography, :distance)',
+        {
+          lng: location.lng,
+          lat: location.lat,
+          distance: radius,
+        },
+      )
+      .getMany();
   }
 }

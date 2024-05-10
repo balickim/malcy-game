@@ -14,6 +14,7 @@ import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { GroupsMembersEntity } from '~/modules/chat/entities/groups-members.entity';
 import { MessagesEntity } from '~/modules/chat/entities/messages.entity';
 import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
+import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 
 @Entity({ name: 'users' })
@@ -55,6 +56,9 @@ export class UsersEntity extends AuditableBaseEntity {
 
   @OneToMany(() => GroupsMembersEntity, (groupMember) => groupMember.user)
   groups: GroupsMembersEntity[];
+
+  @OneToMany(() => DiscoveredSettlementsEntity, (ds) => ds.user)
+  discoveredSettlements: DiscoveredSettlementsEntity[];
 
   @BeforeInsert()
   generateId() {

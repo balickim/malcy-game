@@ -30,6 +30,7 @@ export class SettlementsController {
     @Query('southWestLng') southWestLng: string,
     @Query('northEastLat') northEastLat: string,
     @Query('northEastLng') northEastLng: string,
+    @Request() req: IExpressRequestWithUser<IJwtUser>,
   ) {
     const southWest = {
       lat: parseFloat(southWestLat),
@@ -41,6 +42,7 @@ export class SettlementsController {
     };
 
     return this.settlementsService.findSettlementsInBounds(
+      req.user.id,
       southWest,
       northEast,
     );

@@ -7,12 +7,14 @@ import {
   Entity,
   GeoJSON,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
+import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 export enum SettlementTypesEnum {
@@ -86,6 +88,9 @@ export class SettlementsEntity extends AuditableBaseEntity {
 
   @OneToOne(() => ArmyEntity, (army) => army.settlement)
   army: ArmyEntity;
+
+  @OneToMany(() => DiscoveredSettlementsEntity, (ds) => ds.settlement)
+  discoveredByUsers: DiscoveredSettlementsEntity[];
 
   @BeforeInsert()
   generateId() {

@@ -31,5 +31,6 @@ import { SettlementsService } from './settlements.service';
     SettlementsSubscriber,
     UserLocationService,
   ],
+  exports: [SettlementsService],
 })
 export class SettlementsModule {}

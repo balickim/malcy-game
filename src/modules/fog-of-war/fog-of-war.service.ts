@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { DiscoveredAreaEntity } from '~/modules/fog-of-war/entities/discovered-area.entity';
+import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { VisibleAreaEntity } from '~/modules/fog-of-war/entities/visible-area.entity';
+import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 
 @Injectable()
 export class FogOfWarService {
@@ -14,6 +16,8 @@ export class FogOfWarService {
     private discoveredAreaEntityRepository: Repository<DiscoveredAreaEntity>,
     @InjectRepository(VisibleAreaEntity)
     private visibleAreaEntityRepository: Repository<VisibleAreaEntity>,
+    @InjectRepository(DiscoveredSettlementsEntity)
+    private discoveredSettlementsEntityRepository: Repository<DiscoveredSettlementsEntity>,
   ) {}
 
   public async findAllDiscoveredByUser(userId: string) {
@@ -124,5 +128,28 @@ export class FogOfWarService {
 
       await this.visibleAreaEntityRepository.save(newArea);
     }
+  }
+
+  public async discoverSettlement(
+    discoveredByUserId: string,
+    settlement: SettlementsEntity,
+  ) {
+    const {
+      id: settlementId,
+      user: { id: userId },
+      type,
+    } = settlement;
+
+    const recordToUpsert: Partial<DiscoveredSettlementsEntity> = {
+      userId: userId,
+      discoveredByUserId,
+      settlementId: settlementId,
+      type: type,
+    };
+
+    return this.discoveredSettlementsEntityRepository.upsert(recordToUpsert, {
+      conflictPaths: ['settlementId'],
+      skipUpdateIfNoValuesChanged: true,
+    });
   }
 }
