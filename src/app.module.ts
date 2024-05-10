@@ -10,6 +10,7 @@ import { AuthModule } from '~/modules/auth/auth.module';
 import { ChatModule } from '~/modules/chat/chat.module';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
+import { FogOfWarModule } from '~/modules/fog-of-war/fog-of-war.module';
 import { RecruitmentsModule } from '~/modules/recruitments/recruitments.module';
 import { ResourcesModule } from '~/modules/resources/resources.module';
 import { SettlementsModule } from '~/modules/settlements/settlements.module';
@@ -33,6 +34,7 @@ import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/pr
     ResourcesModule,
     EventLogModule,
     ChatModule,
+    FogOfWarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

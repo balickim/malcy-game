@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
+import { FogOfWarModule } from '~/modules/fog-of-war/fog-of-war.module';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsSubscriber } from '~/modules/settlements/settlements.subscriber';
 import { UserLocationService } from '~/modules/user-location/user-location.service';
@@ -20,6 +21,7 @@ import { SettlementsService } from './settlements.service';
     EventLogModule,
     ConfigModule,
     UsersModule,
+    FogOfWarModule,
   ],
   controllers: [SettlementsController],
   providers: [

@@ -5,6 +5,7 @@ import Redis from 'ioredis';
 import { ConfigService } from '~/modules/config/config.service';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
+import { FogOfWarService } from '~/modules/fog-of-war/fog-of-war.service';
 import { UsersService } from '~/modules/users/users.service';
 
 interface LatLng {
@@ -28,6 +29,7 @@ export class UserLocationService {
     private configService: ConfigService,
     private eventLogService: EventLogService,
     private readonly usersService: UsersService,
+    private fogOfWarService: FogOfWarService,
   ) {}
 
   public async updateLocation(params: IUpdateLocationParams) {
@@ -58,7 +60,12 @@ export class UserLocationService {
       Date.now().toString(),
     ); // change old location timestamp to new one
 
-    return 'success';
+    await this.fogOfWarService.updateDiscoveredArea(
+      params.userId,
+      params.location.lat,
+      params.location.lng,
+      this.configService.gameConfig.PLAYER_DISCOVER_RADIUS_METERS,
+    );
   }
 
   public async getUserLocation(params: { userId: string }) {
