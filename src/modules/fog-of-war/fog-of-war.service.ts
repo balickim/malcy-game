@@ -66,10 +66,8 @@ export class FogOfWarService {
   ) {
     await this.updateVisibleArea(userId, lat, lng, radiusInMeters);
 
-    const sides = 64;
-
     const newPolygon = () =>
-      `ST_Transform(ST_Buffer(ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857), ${radiusInMeters}, 'quad_segs=${sides}'), 4326)`;
+      `ST_Buffer(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusInMeters})::geometry`;
 
     const discoveredArea = await this.discoveredAreaEntityRepository.findOne({
       where: { userId },
@@ -101,10 +99,8 @@ export class FogOfWarService {
     lng: number,
     radiusInMeters: number,
   ) {
-    const sides = 64;
-
     const newPolygon = () =>
-      `ST_Transform(ST_Buffer(ST_Transform(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326), 3857), ${radiusInMeters}, 'quad_segs=${sides}'), 4326)`;
+      `ST_Buffer(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radiusInMeters})::geometry`;
 
     const visibleArea = await this.visibleAreaEntityRepository.findOne({
       where: { userId },
