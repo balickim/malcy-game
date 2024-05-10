@@ -17,55 +17,43 @@ export class FogOfWarService {
   ) {}
 
   public async findAllDiscoveredByUser(userId: string) {
-    const areas = await this.discoveredAreaEntityRepository.find({
-      where: { userId },
-      select: ['area', 'id'],
+    const areas = await this.discoveredAreaEntityRepository
+      .createQueryBuilder()
+      .select('ST_AsGeoJSON((ST_Dump(area)).geom)::json', 'area')
+      .where('"userId" = :userId', { userId })
+      .getRawMany();
+
+    const convertedAreas = areas.map((result) => {
+      const geoJson = result.area;
+
+      if (geoJson.type === 'Polygon') {
+        return geoJson.coordinates[0].map(([lng, lat]) => [lat, lng]);
+      } else {
+        console.warn('Unexpected GeoJSON type:', geoJson.type);
+        return [];
+      }
     });
-
-    const convertedAreas = await Promise.all(
-      areas.map(async (area) => {
-        const result = await this.discoveredAreaEntityRepository
-          .createQueryBuilder()
-          .select('ST_AsGeoJSON(area)::json', 'area')
-          .where('id = :id', { id: area.id })
-          .getRawOne();
-
-        const geoJson = result.area;
-
-        if (geoJson.type === 'MultiPolygon') {
-          return geoJson.coordinates[0][0].map(([lng, lat]) => [lat, lng]);
-        } else if (geoJson.type === 'Polygon') {
-          return geoJson.coordinates[0].map(([lng, lat]) => [lat, lng]);
-        }
-      }),
-    );
 
     return convertedAreas;
   }
 
   public async findAllVisibleByUser(userId: string) {
-    const areas = await this.visibleAreaEntityRepository.find({
-      where: { userId },
-      select: ['area', 'id'],
+    const areas = await this.visibleAreaEntityRepository
+      .createQueryBuilder()
+      .select('ST_AsGeoJSON((ST_Dump(area)).geom)::json', 'area')
+      .where('"userId" = :userId', { userId })
+      .getRawMany();
+
+    const convertedAreas = areas.map((result) => {
+      const geoJson = result.area;
+
+      if (geoJson.type === 'Polygon') {
+        return geoJson.coordinates[0].map(([lng, lat]) => [lat, lng]);
+      } else {
+        console.warn('Unexpected GeoJSON type:', geoJson.type);
+        return [];
+      }
     });
-
-    const convertedAreas = await Promise.all(
-      areas.map(async (area) => {
-        const result = await this.visibleAreaEntityRepository
-          .createQueryBuilder()
-          .select('ST_AsGeoJSON(area)::json', 'area')
-          .where('id = :id', { id: area.id })
-          .getRawOne();
-
-        const geoJson = result.area;
-
-        if (geoJson.type === 'MultiPolygon') {
-          return geoJson.coordinates[0][0].map(([lng, lat]) => [lat, lng]);
-        } else if (geoJson.type === 'Polygon') {
-          return geoJson.coordinates[0].map(([lng, lat]) => [lat, lng]);
-        }
-      }),
-    );
 
     return convertedAreas;
   }
@@ -98,7 +86,7 @@ export class FogOfWarService {
         .execute();
     } else {
       // @ts-expect-error area needs to be executed () =>
-      const newArea = this.fogOfWarEntityRepository.create({
+      const newArea = this.discoveredAreaEntityRepository.create({
         userId,
         area: () => newPolygon(),
       });
