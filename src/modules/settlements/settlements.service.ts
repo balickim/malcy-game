@@ -11,7 +11,6 @@ import { EventLogService } from '~/modules/event-log/event-log.service';
 import {
   PrivateSettlementDto,
   PublicSettlementDto,
-  PublicSettlementDtoWithConvertedLocation,
 } from '~/modules/settlements/dtos/settlements.dto';
 import TransferArmyDto from '~/modules/settlements/dtos/transferArmyDto';
 import {
@@ -66,63 +65,6 @@ export class SettlementsService {
         );
     } catch (error) {
       this.logger.log(`CREATED NEW SETTLEMENT FAILED: --${error}--`);
-    }
-  }
-
-  async findSettlementsInBounds(
-    discoveredByUserId: string,
-    southWest: { lat: number; lng: number },
-    northEast: { lat: number; lng: number },
-  ): Promise<PublicSettlementDtoWithConvertedLocation[]> {
-    try {
-      const query = this.settlementsEntityRepository
-        .createQueryBuilder('settlement')
-        .select([
-          'settlement.id AS id',
-          'settlement.name AS name',
-          'settlement.type AS type',
-          'settlement.location AS location',
-          'ST_X(settlement.location) AS lng',
-          'ST_Y(settlement.location) AS lat',
-        ])
-        .leftJoinAndSelect('settlement.user', 'user')
-        .leftJoin(
-          'discoveredSettlements',
-          'ds',
-          'ds.settlementId = settlement.id AND ds.discoveredByUserId = :discoveredByUserId',
-          { discoveredByUserId },
-        )
-        .where('ds.id IS NOT NULL')
-        .andWhere(
-          `settlement.location && ST_MakeEnvelope(:southWestLng, :southWestLat, :northEastLng, :northEastLat, 4326)`,
-          {
-            southWestLng: southWest.lng,
-            southWestLat: southWest.lat,
-            northEastLng: northEast.lng,
-            northEastLat: northEast.lat,
-          },
-        );
-
-      const rawResults = await query.getRawMany();
-
-      return rawResults.map((result) => {
-        return {
-          id: result.id,
-          name: result.name,
-          type: result.type,
-          location: result.location,
-          lng: result.lng,
-          lat: result.lat,
-          user: {
-            id: result.user_id,
-            username: result.user_username,
-          },
-        };
-      });
-    } catch (e) {
-      this.logger.error(
-        `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED: ${e.message}`,
-      );
     }
   }
 

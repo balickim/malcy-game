@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { EnsureWithinLocation } from '~/common/decorators/ensure-within-location.decorator';
@@ -22,31 +14,6 @@ import { SettlementsService } from './settlements.service';
 @Controller('settlements')
 export class SettlementsController {
   constructor(private readonly settlementsService: SettlementsService) {}
-
-  @Get('/bounds')
-  @ResponseMessage('Fetched Settlements Succesfully')
-  async findInBounds(
-    @Query('southWestLat') southWestLat: string,
-    @Query('southWestLng') southWestLng: string,
-    @Query('northEastLat') northEastLat: string,
-    @Query('northEastLng') northEastLng: string,
-    @Request() req: IExpressRequestWithUser<IJwtUser>,
-  ) {
-    const southWest = {
-      lat: parseFloat(southWestLat),
-      lng: parseFloat(southWestLng),
-    };
-    const northEast = {
-      lat: parseFloat(northEastLat),
-      lng: parseFloat(northEastLng),
-    };
-
-    return this.settlementsService.findSettlementsInBounds(
-      req.user.id,
-      southWest,
-      northEast,
-    );
-  }
 
   @Post('/')
   async createSettlement(

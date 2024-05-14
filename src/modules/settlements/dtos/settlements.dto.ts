@@ -12,7 +12,11 @@ export class PublicSettlementDto {
   user: TBasicUser;
 }
 
-export class PublicSettlementDtoWithConvertedLocation extends PublicSettlementDto {
+export class PublicSettlementDtoWithConvertedLocation {
+  id: string;
+  name: string;
+  type: SettlementTypesEnum;
+  user: TBasicUser;
   lat: number;
   lng: number;
 }
