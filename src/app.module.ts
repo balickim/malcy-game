@@ -8,6 +8,7 @@ import { checkPostGISExtension } from '~/common/utils/postgis';
 import { ArmiesModule } from '~/modules/armies/armies.module';
 import { AuthModule } from '~/modules/auth/auth.module';
 import { ChatModule } from '~/modules/chat/chat.module';
+import { CombatsModule } from '~/modules/combats/combats.module';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
 import { FogOfWarModule } from '~/modules/fog-of-war/fog-of-war.module';
@@ -35,6 +36,7 @@ import { PostgresDatabaseProviderModule } from '~/providers/database/postgres/pr
     EventLogModule,
     ChatModule,
     FogOfWarModule,
+    CombatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

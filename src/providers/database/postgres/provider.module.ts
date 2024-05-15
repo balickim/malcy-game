@@ -6,6 +6,7 @@ import { ConversationsEntity } from '~/modules/chat/entities/conversations.entit
 import { GroupsMembersEntity } from '~/modules/chat/entities/groups-members.entity';
 import { GroupsEntity } from '~/modules/chat/entities/groups.entity';
 import { MessagesEntity } from '~/modules/chat/entities/messages.entity';
+import { SiegeEntity } from '~/modules/combats/entities/siege.entity';
 import { ConfigModule } from '~/modules/config/config.module';
 import { ConfigService } from '~/modules/config/config.service';
 import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
@@ -56,6 +57,7 @@ import { UsersModule } from '~/modules/users/users.module';
             DiscoveredAreaEntity,
             VisibleAreaEntity,
             DiscoveredSettlementsEntity,
+            SiegeEntity,
           ],
           subscribers: [EventLogSubscriber],
         };

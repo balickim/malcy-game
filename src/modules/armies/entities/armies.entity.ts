@@ -12,7 +12,7 @@ import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
 import { UsersEntity } from '~/modules/users/entities/users.entity';
 
-export enum UnitType {
+export const enum UnitType {
   SWORDSMAN = 'swordsman',
   ARCHER = 'archer',
   KNIGHT = 'knight',

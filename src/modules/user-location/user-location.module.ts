@@ -21,5 +21,6 @@ import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.modul
     SettlementsModule,
   ],
   providers: [UserLocationService, UserLocationGateway, EventLogService],
+  exports: [UserLocationService],
 })
 export class UserLocationModule {}

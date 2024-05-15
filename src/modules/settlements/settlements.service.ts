@@ -286,6 +286,8 @@ export class SettlementsService {
       .createQueryBuilder('settlement')
       .leftJoinAndSelect('settlement.user', 'user')
       .addSelect('user.id')
+      .leftJoinAndSelect('settlement.army', 'army')
+      .addSelect('army.id')
       .where(
         'ST_DWithin(settlement.location, ST_MakePoint(:lng, :lat)::geography, :distance)',
         {

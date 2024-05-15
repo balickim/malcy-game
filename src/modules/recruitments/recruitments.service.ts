@@ -22,7 +22,6 @@ import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto
 import { ResourceTypeEnum } from '~/modules/settlements/entities/settlements.entity';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
 import { IJwtUser } from '~/modules/users/dtos/users.dto';
-import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 const bullSettlementRecruitmentQueueName = (settlementId: string) =>
   `recruitment:settlement_${settlementId}`;

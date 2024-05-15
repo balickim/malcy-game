@@ -19,6 +19,7 @@ export class PublicSettlementDtoWithConvertedLocation {
   user: TBasicUser;
   lat: number;
   lng: number;
+  siege: unknown;
 }
 
 export class PrivateSettlementDto extends PublicSettlementDto {

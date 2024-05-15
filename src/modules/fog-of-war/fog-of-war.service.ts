@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { UnitType } from '~/modules/armies/entities/armies.entity';
+import { CombatsService } from '~/modules/combats/combats.service';
 import { DiscoveredAreaEntity } from '~/modules/fog-of-war/entities/discovered-area.entity';
 import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/discovered-settlements.entity';
 import { VisibleAreaEntity } from '~/modules/fog-of-war/entities/visible-area.entity';
@@ -19,6 +21,7 @@ export class FogOfWarService {
     private visibleAreaEntityRepository: Repository<VisibleAreaEntity>,
     @InjectRepository(DiscoveredSettlementsEntity)
     private discoveredSettlementsEntityRepository: Repository<DiscoveredSettlementsEntity>,
+    private combatsService: CombatsService,
   ) {}
 
   public async findAllDiscoveredByUser(userId: string) {
@@ -135,22 +138,20 @@ export class FogOfWarService {
     discoveredByUserId: string,
     settlement: SettlementsEntity,
   ) {
-    const {
-      id: settlementId,
-      user: { id: userId },
-      type,
-    } = settlement;
-
     const recordToUpsert: Partial<DiscoveredSettlementsEntity> = {
-      userId: userId,
       discoveredByUserId,
-      settlementId: settlementId,
-      type: type,
+      userId: settlement.user.id,
+      settlementId: settlement.id,
+      type: settlement.type,
+      [UnitType.SWORDSMAN]: settlement.army[UnitType.SWORDSMAN],
+      [UnitType.ARCHER]: settlement.army[UnitType.ARCHER],
+      [UnitType.KNIGHT]: settlement.army[UnitType.KNIGHT],
+      [UnitType.LUCHADOR]: settlement.army[UnitType.LUCHADOR],
+      [UnitType.ARCHMAGE]: settlement.army[UnitType.ARCHMAGE],
     };
 
     return this.discoveredSettlementsEntityRepository.upsert(recordToUpsert, {
       conflictPaths: ['settlementId'],
-      skipUpdateIfNoValuesChanged: true,
     });
   }
 
@@ -188,19 +189,27 @@ export class FogOfWarService {
 
       const rawResults = await query.getRawMany();
 
-      return rawResults.map((result) => {
-        return {
-          id: result.id,
-          name: result.name,
-          type: result.type,
-          lng: result.lng,
-          lat: result.lat,
-          user: {
-            id: result.user_id,
-            username: result.user_username,
-          },
-        };
-      });
+      const results = await Promise.all(
+        rawResults.map(async (result) => {
+          const siege = await this.combatsService.getSiegeBySettlementId(
+            result.id,
+          );
+          return {
+            id: result.id,
+            name: result.name,
+            type: result.type,
+            lng: result.lng,
+            lat: result.lat,
+            user: {
+              id: result.user_id,
+              username: result.user_username,
+            },
+            siege,
+          };
+        }),
+      );
+
+      return results;
     } catch (e) {
       this.logger.error(
         `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED: ${e.message}`,

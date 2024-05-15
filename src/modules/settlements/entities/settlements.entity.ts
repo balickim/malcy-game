@@ -24,7 +24,7 @@ export enum SettlementTypesEnum {
   CAPITOL_SETTLEMENT = 'CAPITOL_SETTLEMENT',
 }
 
-export enum ResourceTypeEnum {
+export const enum ResourceTypeEnum {
   wood = 'wood',
   gold = 'gold',
 }
