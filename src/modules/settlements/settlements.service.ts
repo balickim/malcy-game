@@ -1,13 +1,20 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { include, includeAll } from '~/common/utils';
+import { convertGeoJSONToPoint } from '~/common/utils/postgis';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { ConfigService } from '~/modules/config/config.service';
 import { IResource } from '~/modules/config/game.config';
 import { ActionType } from '~/modules/event-log/entities/event-log.entity';
 import { EventLogService } from '~/modules/event-log/event-log.service';
+import { CreateSettlementDto } from '~/modules/settlements/dtos/createSettlementDto';
 import {
   PrivateSettlementDto,
   PublicSettlementDto,
@@ -35,18 +42,30 @@ export class SettlementsService {
     private configService: ConfigService,
   ) {}
 
-  async createSettlement(settlementData: { name: string }, user: IJwtUser) {
-    const userLocation = await this.userLocationService.getUserLocation({
-      userId: user.id,
-    });
-
+  async createSettlement(
+    createSettlementDto: CreateSettlementDto,
+    user: IJwtUser,
+  ) {
     const locationGeoJSON: GeoJSON.Point = {
       type: 'Point',
-      coordinates: [userLocation.lng, userLocation.lat],
+      coordinates: [
+        createSettlementDto.position.lng,
+        createSettlementDto.position.lat,
+      ],
     };
 
+    const isUserWithinRadius =
+      await this.userLocationService.isUserWithinRadius({
+        userId: user.id,
+        location: convertGeoJSONToPoint(locationGeoJSON),
+      });
+
+    if (!isUserWithinRadius) {
+      throw new BadRequestException('You are too far');
+    }
+
     const newSettlement = this.settlementsEntityRepository.create({
-      name: settlementData.name,
+      name: createSettlementDto.name,
       location: locationGeoJSON,
       user,
     });
