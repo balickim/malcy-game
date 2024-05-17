@@ -72,6 +72,15 @@ export class UserLocationGateway {
           settlement,
         );
       }
+
+      client.emit(
+        'allDiscoveredByUser',
+        await this.fogOfWarService.findAllDiscoveredByUser(payload.userId),
+      );
+      client.emit(
+        'allVisibleByUser',
+        await this.fogOfWarService.findAllVisibleByUser(payload.userId),
+      );
     } catch (e) {
       this.logger.error(
         `ERROR UPDATING LOCATION FOR USER: ${payload.userId} --- ${e}`,

@@ -71,20 +71,4 @@ export class ChatGateway {
       user,
     };
   }
-
-  @SubscribeMessage('joinRoom')
-  handleRoomJoin(
-    @MessageBody() room: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    client.join(room);
-  }
-
-  @SubscribeMessage('leaveRoom')
-  handleRoomLeave(
-    @MessageBody() room: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    client.leave(room);
-  }
 }
