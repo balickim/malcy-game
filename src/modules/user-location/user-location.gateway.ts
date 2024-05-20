@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+import { WsJwtGuard } from '~/modules/chat/guards/ws-jwt.guard';
 import { ConfigService } from '~/modules/config/config.service';
 import { FogOfWarService } from '~/modules/fog-of-war/fog-of-war.service';
 import { SettlementsService } from '~/modules/settlements/settlements.service';
@@ -29,6 +30,7 @@ import {
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  namespace: '/user-location',
 })
 export class UserLocationGateway {
   private readonly logger = new Logger(UserLocationGateway.name);
@@ -40,6 +42,7 @@ export class UserLocationGateway {
     private settlementsService: SettlementsService,
     private configService: ConfigService,
     private fogOfWarService: FogOfWarService,
+    private wsJwtGuard: WsJwtGuard,
   ) {}
 
   @SubscribeMessage('playerPosition')
@@ -47,11 +50,20 @@ export class UserLocationGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: IUpdateLocationParams,
   ) {
+    if (
+      !this.wsJwtGuard.canActivate({
+        switchToWs: () => ({ getClient: () => client }),
+      } as any)
+    ) {
+      client.disconnect();
+      return;
+    }
+
     try {
       await this.userLocationService.updateLocation(payload);
       this.logger.debug(`LOCATION UPDATED FOR USER: ${payload.userId}`);
 
-      const nearbyUsers = await this.userLocationService.getUsersInRadius(
+      const nearbyUsers = await this.userLocationService.getOnlineUsersInRadius(
         payload.location.lng,
         payload.location.lat,
         this.configService.gameConfig.PLAYER_DISCOVER_RADIUS_METERS,

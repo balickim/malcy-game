@@ -60,7 +60,7 @@ export class UserLocationService {
       Date.now().toString(),
     ); // change old location timestamp to new one
 
-    await this.fogOfWarService.updateDiscoveredArea(
+    return await this.fogOfWarService.updateDiscoveredArea(
       params.userId,
       params.location.lat,
       params.location.lng,
@@ -133,7 +133,7 @@ export class UserLocationService {
     return distance ? Number(distance) : 0;
   }
 
-  public async getUsersInRadius(
+  public async getOnlineUsersInRadius(
     longitude: number,
     latitude: number,
     radius: number,
