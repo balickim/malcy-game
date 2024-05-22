@@ -4,34 +4,32 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
 import { AuditableBaseEntity } from '~/modules/event-log/entities/auditable-base.entity';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
-
-export enum SiegeStatusEnum {
-  ONGOING = 'ONGOING',
-  VICTORY = 'VICTORY',
-  DEFEAT = 'DEFEAT',
-}
+import { UsersEntity } from '~/modules/users/entities/users.entity';
 
 @Entity({ name: 'sieges' })
-export class SiegeEntity extends AuditableBaseEntity {
+export class SiegesEntity extends AuditableBaseEntity {
   @PrimaryColumn()
   id: string;
 
-  @ManyToOne(() => SettlementsEntity, { eager: true })
+  @Column({ nullable: true, unique: true })
+  attackerUserId?: string;
+
+  @Column({ nullable: true, unique: true })
+  settlementId?: string;
+
+  @OneToOne(() => UsersEntity, (user) => user.army)
+  @JoinColumn({ name: 'attackerUserId' })
+  user: UsersEntity;
+
+  @OneToOne(() => SettlementsEntity, (settlement) => settlement.army)
   @JoinColumn({ name: 'settlementId' })
   settlement: SettlementsEntity;
-
-  @Column({
-    type: 'enum',
-    enum: SiegeStatusEnum,
-    default: SiegeStatusEnum.ONGOING,
-  })
-  status: SiegeStatusEnum;
 
   @BeforeInsert()
   generateId() {

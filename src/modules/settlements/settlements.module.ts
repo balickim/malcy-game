@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ArmiesModule } from '~/modules/armies/armies.module';
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogModule } from '~/modules/event-log/event-log.module';
@@ -10,7 +11,6 @@ import { SettlementsSubscriber } from '~/modules/settlements/settlements.subscri
 import { UserLocationService } from '~/modules/user-location/user-location.service';
 import { UsersModule } from '~/modules/users/users.module';
 
-import { Settlements } from './settlements';
 import { SettlementsController } from './settlements.controller';
 import { SettlementsGateway } from './settlements.gateway';
 import { SettlementsService } from './settlements.service';
@@ -22,12 +22,12 @@ import { SettlementsService } from './settlements.service';
     ConfigModule,
     UsersModule,
     FogOfWarModule,
+    ArmiesModule,
   ],
   controllers: [SettlementsController],
   providers: [
     SettlementsService,
     SettlementsGateway,
-    Settlements,
     SettlementsSubscriber,
     UserLocationService,
   ],

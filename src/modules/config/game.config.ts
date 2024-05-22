@@ -16,12 +16,26 @@ interface UnitRecruitment {
   TIME_MS: number;
 }
 
+interface UnitCombatStats {
+  ATTACK: number;
+  DEFENSE: number;
+  HEALTH: number;
+}
+
 interface Recruitment {
   [UnitType.SWORDSMAN]?: UnitRecruitment;
   [UnitType.ARCHER]?: UnitRecruitment;
   [UnitType.KNIGHT]?: UnitRecruitment;
   [UnitType.LUCHADOR]?: UnitRecruitment;
   [UnitType.ARCHMAGE]?: UnitRecruitment;
+}
+
+interface UnitCombat {
+  [UnitType.SWORDSMAN]?: UnitCombatStats;
+  [UnitType.ARCHER]?: UnitCombatStats;
+  [UnitType.KNIGHT]?: UnitCombatStats;
+  [UnitType.LUCHADOR]?: UnitCombatStats;
+  [UnitType.ARCHMAGE]?: UnitCombatStats;
 }
 
 interface SettlementConfig {
@@ -37,6 +51,7 @@ export interface GameConfig {
   DEFAULT_MAX_USER_SPEED_METERS_PER_SECOND: number;
   USER_IS_ONLINE_SECONDS: number;
   DEFAULT_RESOURCE_DISPOSITION_RATE: CronExpression;
+  COMBAT: UnitCombat;
   SETTLEMENT: {
     [SettlementTypesEnum.MINING_TOWN]: SettlementConfig;
     [SettlementTypesEnum.CASTLE_TOWN]: SettlementConfig;
@@ -51,6 +66,14 @@ export const gameConfig = (): GameConfig => ({
   PLAYER_DISCOVER_RADIUS_METERS: 200,
   USER_IS_ONLINE_SECONDS: 60,
   DEFAULT_RESOURCE_DISPOSITION_RATE: CronExpression.EVERY_10_SECONDS,
+
+  COMBAT: {
+    [UnitType.SWORDSMAN]: { ATTACK: 10, DEFENSE: 5, HEALTH: 50 },
+    [UnitType.ARCHER]: { ATTACK: 15, DEFENSE: 3, HEALTH: 30 },
+    [UnitType.KNIGHT]: { ATTACK: 20, DEFENSE: 10, HEALTH: 100 },
+    [UnitType.LUCHADOR]: { ATTACK: 25, DEFENSE: 8, HEALTH: 80 },
+    [UnitType.ARCHMAGE]: { ATTACK: 30, DEFENSE: 5, HEALTH: 60 },
+  },
 
   SETTLEMENT: {
     [SettlementTypesEnum.MINING_TOWN]: {

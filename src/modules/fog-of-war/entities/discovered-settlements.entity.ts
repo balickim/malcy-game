@@ -32,10 +32,6 @@ export class DiscoveredSettlementsEntity extends AuditableBaseEntity {
   @Column()
   type: SettlementTypesEnum;
 
-  @ManyToOne(() => UsersEntity, (user) => user.discoveredSettlements)
-  @JoinColumn({ name: 'userId' })
-  user: UsersEntity;
-
   @Column({ nullable: true })
   [UnitType.SWORDSMAN]: number;
 
@@ -50,6 +46,10 @@ export class DiscoveredSettlementsEntity extends AuditableBaseEntity {
 
   @Column({ nullable: true })
   [UnitType.ARCHMAGE]: number;
+
+  @ManyToOne(() => UsersEntity, (user) => user.discoveredSettlements)
+  @JoinColumn({ name: 'userId' })
+  user: UsersEntity;
 
   @ManyToOne(
     () => SettlementsEntity,

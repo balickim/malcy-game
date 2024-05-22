@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 
 import { include, includeAll } from '~/common/utils';
 import { convertGeoJSONToPoint } from '~/common/utils/postgis';
+import { ArmiesService } from '~/modules/armies/armies.service';
 import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
 import { ConfigService } from '~/modules/config/config.service';
 import { IResource } from '~/modules/config/game.config';
@@ -40,6 +41,7 @@ export class SettlementsService {
     private userLocationService: UserLocationService,
     private eventLogService: EventLogService,
     private configService: ConfigService,
+    private armiesService: ArmiesService,
   ) {}
 
   async createSettlement(
@@ -128,15 +130,12 @@ export class SettlementsService {
     pickUpArmyDto: TransferArmyDto,
     settlement: PrivateSettlementDto,
   ) {
-    if (
-      settlement.army[UnitType.SWORDSMAN] < pickUpArmyDto[UnitType.SWORDSMAN] ||
-      settlement.army[UnitType.ARCHER] < pickUpArmyDto[UnitType.ARCHER] ||
-      settlement.army[UnitType.KNIGHT] < pickUpArmyDto[UnitType.KNIGHT] ||
-      settlement.army[UnitType.LUCHADOR] < pickUpArmyDto[UnitType.LUCHADOR] ||
-      settlement.army[UnitType.ARCHMAGE] < pickUpArmyDto[UnitType.ARCHMAGE]
-    ) {
+    const areTroopsAvailable = this.armiesService.areTroopsAvailable(
+      settlement.army,
+      pickUpArmyDto,
+    );
+    if (!areTroopsAvailable)
       throw new NotFoundException('Not enough troops in the settlement');
-    }
 
     settlement.army[UnitType.SWORDSMAN] -= pickUpArmyDto[UnitType.SWORDSMAN];
     settlement.army[UnitType.ARCHER] -= pickUpArmyDto[UnitType.ARCHER];
@@ -316,5 +315,28 @@ export class SettlementsService {
         },
       )
       .getMany();
+  }
+
+  public async changeSettlementOwner(
+    settlementId: string,
+    newOwnerId: string,
+  ): Promise<PrivateSettlementDto> {
+    const settlement = await this.settlementsEntityRepository.findOne({
+      where: { id: settlementId },
+      relations: ['user', 'army'],
+    });
+
+    if (!settlement) {
+      throw new NotFoundException(
+        `Settlement not found with ID: ${settlementId}`,
+      );
+    }
+
+    // Update the owner
+    settlement.user.id = newOwnerId;
+
+    await this.settlementsEntityRepository.save(settlement);
+
+    return this.getPrivateSettlementById(settlementId);
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { EnsureWithinLocation } from '~/common/decorators/ensure-within-location.decorator';
@@ -24,5 +24,10 @@ export class CombatsController {
       req.user.id,
       req.settlement,
     );
+  }
+
+  @Get('/siege/:id')
+  async getSiege(@Param('id') id: string) {
+    return this.combatsService.getSiegeBySettlementId(id);
   }
 }

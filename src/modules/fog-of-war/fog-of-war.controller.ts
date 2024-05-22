@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Request } from '@nestjs/common';
+import { Controller, Get, Param, Query, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { ResponseMessage } from '~/common/decorators/response_message.decorator';
@@ -47,6 +47,17 @@ export class FogOfWarController {
       req.user.id,
       southWest,
       northEast,
+    );
+  }
+
+  @Get(':id')
+  async getDiscoveredSettlementById(
+    @Request() req: IExpressRequestWithUser<IJwtUser>,
+    @Param() params: { id: string },
+  ) {
+    return this.fogOfWarService.getDiscoveredSettlementById(
+      params.id,
+      req.user,
     );
   }
 }

@@ -9,6 +9,7 @@ import { DiscoveredSettlementsEntity } from '~/modules/fog-of-war/entities/disco
 import { VisibleAreaEntity } from '~/modules/fog-of-war/entities/visible-area.entity';
 import { PublicSettlementDtoWithConvertedLocation } from '~/modules/settlements/dtos/settlements.dto';
 import { SettlementsEntity } from '~/modules/settlements/entities/settlements.entity';
+import { IJwtUser } from '~/modules/users/dtos/users.dto';
 
 @Injectable()
 export class FogOfWarService {
@@ -167,6 +168,11 @@ export class FogOfWarService {
           'ds.settlementId AS id',
           'ds.type AS type',
           'settlement.name AS name',
+          'ds.swordsman AS swordsman',
+          'ds.archer AS archer',
+          'ds.knight AS knight',
+          'ds.luchador AS luchador',
+          'ds.archmage AS archmage',
           'ST_X(settlement.location) AS lng',
           'ST_Y(settlement.location) AS lat',
           'user.id AS user_id',
@@ -200,6 +206,11 @@ export class FogOfWarService {
             type: result.type,
             lng: result.lng,
             lat: result.lat,
+            [UnitType.SWORDSMAN]: result[UnitType.SWORDSMAN],
+            [UnitType.ARCHER]: result[UnitType.ARCHER],
+            [UnitType.KNIGHT]: result[UnitType.KNIGHT],
+            [UnitType.LUCHADOR]: result[UnitType.LUCHADOR],
+            [UnitType.ARCHMAGE]: result[UnitType.ARCHMAGE],
             user: {
               id: result.user_id,
               username: result.user_username,
@@ -215,5 +226,29 @@ export class FogOfWarService {
         `FINDING SETTLEMENTS IN BOUNDS southWest.lat:${southWest.lat}, southWest.lng:${southWest.lng}, northEast.lat:${northEast.lat}, northEast.lng:${northEast.lng} FAILED: ${e.message}`,
       );
     }
+  }
+
+  async getDiscoveredSettlementById(id: string, user: IJwtUser) {
+    const discoveredSettlementsEntity =
+      await this.discoveredSettlementsEntityRepository.findOne({
+        select: [
+          'settlementId',
+          'discoveredByUserId',
+          'userId',
+          'type',
+          'user',
+          UnitType.SWORDSMAN,
+          UnitType.ARCHER,
+          UnitType.KNIGHT,
+          UnitType.LUCHADOR,
+          UnitType.ARCHMAGE,
+        ],
+        where: { settlementId: id },
+      });
+
+    if (discoveredSettlementsEntity.discoveredByUserId === user.id) {
+      return discoveredSettlementsEntity;
+    }
+    return null;
   }
 }

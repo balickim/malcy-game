@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ArmiesModule } from '~/modules/armies/armies.module';
 import { ArmyEntity } from '~/modules/armies/entities/armies.entity';
 import { ConfigModule } from '~/modules/config/config.module';
 import { EventLogEntity } from '~/modules/event-log/entities/event-log.entity';
@@ -19,6 +20,7 @@ import { UsersModule } from '~/modules/users/users.module';
     ConfigModule,
     UsersModule,
     FogOfWarModule,
+    ArmiesModule,
   ],
   controllers: [RecruitmentsController],
   providers: [
