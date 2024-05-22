@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -22,6 +22,7 @@ export class FogOfWarService {
     private visibleAreaEntityRepository: Repository<VisibleAreaEntity>,
     @InjectRepository(DiscoveredSettlementsEntity)
     private discoveredSettlementsEntityRepository: Repository<DiscoveredSettlementsEntity>,
+    @Inject(forwardRef(() => CombatsService))
     private combatsService: CombatsService,
   ) {}
 

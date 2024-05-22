@@ -1,6 +1,8 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -18,6 +20,7 @@ import { StartSiegeDto } from '~/modules/combats/dtos/siege.dto';
 import { ISiegeJob } from '~/modules/combats/types';
 import { ConfigService } from '~/modules/config/config.service';
 import { PrivateSettlementDto } from '~/modules/settlements/dtos/settlements.dto';
+import { SettlementsService } from '~/modules/settlements/settlements.service';
 
 const bullSettlementSiegeQueueName = (settlementId: string) =>
   `combat:siege:settlement_${settlementId}`;
@@ -27,11 +30,13 @@ export class CombatsService implements OnModuleInit {
   private readonly logger = new Logger(CombatsService.name);
 
   constructor(
-    @InjectRedis()
-    private readonly redis: Redis,
+    @Inject(forwardRef(() => SettlementsService))
+    private settlementsService: SettlementsService,
+    @InjectRedis() private readonly redis: Redis,
     private configService: ConfigService,
     @InjectRepository(ArmyEntity)
     private armyEntityRepository: Repository<ArmyEntity>,
+    @Inject(forwardRef(() => ArmiesService))
     private armiesService: ArmiesService,
   ) {}
 

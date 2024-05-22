@@ -1,6 +1,8 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   OnModuleInit,
@@ -36,10 +38,10 @@ export class RecruitmentsService implements OnModuleInit {
   private readonly logger = new Logger(RecruitmentsService.name);
 
   constructor(
-    @InjectRedis()
-    private readonly redis: Redis,
+    @InjectRedis() private readonly redis: Redis,
     @InjectRepository(ArmyEntity)
     private armyRepository: Repository<ArmyEntity>,
+    @Inject(forwardRef(() => SettlementsService))
     private settlementsService: SettlementsService,
     private configService: ConfigService,
   ) {}

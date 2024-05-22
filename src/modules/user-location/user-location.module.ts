@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -20,8 +20,8 @@ import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.modul
     TypeOrmModule.forFeature([EventLogEntity]),
     ConfigModule,
     UsersModule,
-    FogOfWarModule,
-    SettlementsModule,
+    forwardRef(() => FogOfWarModule),
+    forwardRef(() => SettlementsModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

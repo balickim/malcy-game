@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ArmiesModule } from '~/modules/armies/armies.module';
@@ -20,7 +20,7 @@ import { CacheRedisProviderModule } from '~/providers/cache/redis/provider.modul
       DiscoveredSettlementsEntity,
     ]),
     CacheRedisProviderModule,
-    ArmiesModule,
+    forwardRef(() => ArmiesModule),
     forwardRef(() => SettlementsModule),
     forwardRef(() => CombatsModule),
   ],

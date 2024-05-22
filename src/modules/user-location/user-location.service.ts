@@ -1,5 +1,5 @@
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 
 import { ConfigService } from '~/modules/config/config.service';
@@ -29,6 +29,7 @@ export class UserLocationService {
     private configService: ConfigService,
     private eventLogService: EventLogService,
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => FogOfWarService))
     private fogOfWarService: FogOfWarService,
   ) {}
 

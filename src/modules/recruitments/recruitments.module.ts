@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ArmiesModule } from '~/modules/armies/armies.module';
@@ -19,8 +19,8 @@ import { UsersModule } from '~/modules/users/users.module';
     TypeOrmModule.forFeature([ArmyEntity, SettlementsEntity, EventLogEntity]),
     ConfigModule,
     UsersModule,
-    FogOfWarModule,
-    ArmiesModule,
+    forwardRef(() => FogOfWarModule),
+    forwardRef(() => ArmiesModule),
   ],
   controllers: [RecruitmentsController],
   providers: [

@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -41,6 +43,7 @@ export class SettlementsService {
     private userLocationService: UserLocationService,
     private eventLogService: EventLogService,
     private configService: ConfigService,
+    @Inject(forwardRef(() => ArmiesService))
     private armiesService: ArmiesService,
   ) {}
 
