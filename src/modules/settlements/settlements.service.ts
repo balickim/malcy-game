@@ -335,7 +335,6 @@ export class SettlementsService {
       );
     }
 
-    // Update the owner
     settlement.user.id = newOwnerId;
 
     await this.settlementsEntityRepository.save(settlement);

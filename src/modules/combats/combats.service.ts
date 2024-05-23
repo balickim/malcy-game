@@ -6,16 +6,14 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Job, Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
-import { Repository } from 'typeorm';
 
 import { sleep } from '~/common/utils';
+import { ArmyRepository } from '~/modules/armies/armies.repository';
 import { ArmiesService } from '~/modules/armies/armies.service';
-import { ArmyEntity, UnitType } from '~/modules/armies/entities/armies.entity';
+import { UnitType } from '~/modules/armies/entities/armies.entity';
 import { StartSiegeDto } from '~/modules/combats/dtos/siege.dto';
 import { ISiegeJob } from '~/modules/combats/types';
 import { ConfigService } from '~/modules/config/config.service';
@@ -26,7 +24,7 @@ const bullSettlementSiegeQueueName = (settlementId: string) =>
   `combat:siege:settlement_${settlementId}`;
 
 @Injectable()
-export class CombatsService implements OnModuleInit {
+export class CombatsService {
   private readonly logger = new Logger(CombatsService.name);
 
   constructor(
@@ -34,62 +32,61 @@ export class CombatsService implements OnModuleInit {
     private settlementsService: SettlementsService,
     @InjectRedis() private readonly redis: Redis,
     private configService: ConfigService,
-    @InjectRepository(ArmyEntity)
-    private armyEntityRepository: Repository<ArmyEntity>,
+    private readonly armyRepository: ArmyRepository,
     @Inject(forwardRef(() => ArmiesService))
     private armiesService: ArmiesService,
   ) {}
 
   // Assigns processors to all active or waiting jobs after server restart
   // bull does not keep processors code in between restarts
-  async onModuleInit() {
-    const prefix = 'bull:combat:siege:';
-    const queueNames = new Set<string>();
-    let cursor = '0';
-
-    do {
-      const reply = await this.redis.scan(
-        cursor,
-        'MATCH',
-        `${prefix}*`,
-        'COUNT',
-        '1000',
-      );
-      cursor = reply[0];
-      reply[1].forEach((key: string) => {
-        const match = key.match(/^(bull:combat:siege:[^:]+)(?::[^:]+)?$/);
-        if (match && match[1]) {
-          queueNames.add(match[1].replace('bull:', ''));
-        }
-      });
-    } while (cursor !== '0');
-
-    this.logger.log(
-      `Attaching processors to ${[...queueNames].length} existing siege queues...`,
-    );
-
-    const attachProcessorsPromises = [...queueNames].map((queueName) => {
-      const worker = new Worker(queueName, this.siegeProcessor, {
-        connection: this.redis,
-      });
-
-      worker.on('completed', (job) => {
-        this.logger.log(`Job ${job.id} in queue ${queueName} completed`);
-      });
-
-      worker.on('failed', (job, err) => {
-        this.logger.error(
-          `Job ${job?.id} in queue ${queueName} failed: ${err}`,
-        );
-      });
-
-      return worker;
-    });
-
-    await Promise.all(attachProcessorsPromises);
-
-    this.logger.log('Processors attached successfully to all existing queues.');
-  }
+  // async onModuleInit() {
+  //   const prefix = 'bull:combat:siege:';
+  //   const queueNames = new Set<string>();
+  //   let cursor = '0';
+  //
+  //   do {
+  //     const reply = await this.redis.scan(
+  //       cursor,
+  //       'MATCH',
+  //       `${prefix}*`,
+  //       'COUNT',
+  //       '1000',
+  //     );
+  //     cursor = reply[0];
+  //     reply[1].forEach((key: string) => {
+  //       const match = key.match(/^(bull:combat:siege:[^:]+)(?::[^:]+)?$/);
+  //       if (match && match[1]) {
+  //         queueNames.add(match[1].replace('bull:', ''));
+  //       }
+  //     });
+  //   } while (cursor !== '0');
+  //
+  //   this.logger.log(
+  //     `Attaching processors to ${[...queueNames].length} existing siege queues...`,
+  //   );
+  //
+  //   const attachProcessorsPromises = [...queueNames].map((queueName) => {
+  //     const worker = new Worker(queueName, this.siegeProcessor, {
+  //       connection: this.redis,
+  //     });
+  //
+  //     worker.on('completed', (job) => {
+  //       this.logger.log(`Job ${job.id} in queue ${queueName} completed`);
+  //     });
+  //
+  //     worker.on('failed', (job, err) => {
+  //       this.logger.error(
+  //         `Job ${job?.id} in queue ${queueName} failed: ${err}`,
+  //       );
+  //     });
+  //
+  //     return worker;
+  //   });
+  //
+  //   await Promise.all(attachProcessorsPromises);
+  //
+  //   this.logger.log('Processors attached successfully to all existing queues.');
+  // }
 
   private getBreakthroughChance() {
     return Math.random() * 10;
@@ -104,8 +101,7 @@ export class CombatsService implements OnModuleInit {
     let success = false;
 
     while (!success) {
-      await sleep(10000);
-
+      await sleep(this.configService.gameConfig.COMBAT.SIEGE.TIME_TICK_MS);
       breakthroughChance += this.getBreakthroughChance();
       if (breakthroughChance > 100) breakthroughChance = 100;
 
@@ -114,14 +110,39 @@ export class CombatsService implements OnModuleInit {
       await job.updateProgress(breakthroughChance);
 
       if (success) {
-        const defenderArmy = await this.armyEntityRepository.findOne({
+        const defenderArmy = await this.armyRepository.findOne({
           where: { id: job.data.defenderSettlement.army.id },
         });
-        const battleOutcome = this.calculateBattleOutcome(
-          job.data.army,
-          defenderArmy,
+        const battleOutcome = this.calculateBattleOutcome(job.data.army, {
+          [UnitType.SWORDSMAN]: defenderArmy[UnitType.SWORDSMAN],
+          [UnitType.ARCHER]: defenderArmy[UnitType.ARCHER],
+          [UnitType.KNIGHT]: defenderArmy[UnitType.KNIGHT],
+          [UnitType.LUCHADOR]: defenderArmy[UnitType.LUCHADOR],
+          [UnitType.ARCHMAGE]: defenderArmy[UnitType.ARCHMAGE],
+        });
+        this.logger.log(
+          `BATTLE OF ${job.data.defenderSettlement.name} OUTCOME IS: ${battleOutcome.result}`,
         );
         if (battleOutcome.result === 'Attacker wins') {
+          const garrison = await this.armyRepository.findOne({
+            where: { settlementId: job.data.defenderSettlement.id },
+          });
+          await this.armyRepository.resetUnits(garrison.id);
+          await this.settlementsService.changeSettlementOwner(
+            job.data.defenderSettlement.id,
+            job.data.attackerUserId,
+          );
+          garrison[UnitType.SWORDSMAN] =
+            battleOutcome.remainingAttackerArmy[UnitType.SWORDSMAN];
+          garrison[UnitType.ARCHER] =
+            battleOutcome.remainingAttackerArmy[UnitType.ARCHER];
+          garrison[UnitType.KNIGHT] =
+            battleOutcome.remainingAttackerArmy[UnitType.KNIGHT];
+          garrison[UnitType.LUCHADOR] =
+            battleOutcome.remainingAttackerArmy[UnitType.LUCHADOR];
+          garrison[UnitType.ARCHMAGE] =
+            battleOutcome.remainingAttackerArmy[UnitType.ARCHMAGE];
+          await this.armyRepository.save(garrison);
         }
         break;
       }
@@ -137,13 +158,15 @@ export class CombatsService implements OnModuleInit {
     if (defenderSettlement.user.id === attackerUserId) {
       throw new BadRequestException('You cannot besiege your own settlement');
     }
+
     const existingSiege = await this.getSiegeBySettlementId(
       defenderSettlement.id,
     );
     if (existingSiege) {
       throw new BadRequestException('This settlement is already besieged');
     }
-    const userArmy = await this.armyEntityRepository.findOne({
+
+    const userArmy = await this.armyRepository.findOne({
       where: { userId: attackerUserId },
     });
     const areTroopsAvailable = this.armiesService.areTroopsAvailable(
@@ -158,22 +181,36 @@ export class CombatsService implements OnModuleInit {
       bullSettlementSiegeQueueName(defenderSettlement.id),
       { connection: this.redis },
     );
-    new Worker(
+
+    const worker = new Worker(
       bullSettlementSiegeQueueName(defenderSettlement.id),
       this.siegeProcessor,
       { connection: this.redis },
     );
+
+    worker.on('completed', (job) => {
+      this.logger.log(
+        `Job ${job.id} in queue ${bullSettlementSiegeQueueName(defenderSettlement.id)} completed`,
+      );
+    });
+
+    worker.on('failed', (job, err) => {
+      this.logger.error(
+        `Job ${job?.id} in queue ${bullSettlementSiegeQueueName(defenderSettlement.id)} failed: ${err}`,
+      );
+    });
+
     const job: Job<ISiegeJob> = await queue.add('siege', {
       army: siegeDto.army,
       defenderSettlement,
       attackerUserId,
     });
-    await job.updateProgress(0);
+
     const deductedArmy = this.armiesService.deductUnits(
       userArmy,
       siegeDto.army,
     );
-    await this.armyEntityRepository.save(deductedArmy);
+    await this.armyRepository.save(deductedArmy);
 
     return job;
   }
@@ -208,9 +245,9 @@ export class CombatsService implements OnModuleInit {
     attackerArmy: Record<UnitType, number>,
     defenderArmy: Record<UnitType, number>,
   ): {
-    result: 'Attacker wins' | 'Defender wins' | string;
-    attackerLosses: Record<UnitType, number>;
-    defenderLosses: Record<UnitType, number>;
+    result: 'Attacker wins' | 'Defender wins';
+    remainingAttackerArmy: Record<UnitType, number>;
+    remainingDefenderArmy: Record<UnitType, number>;
   } {
     let attackerPower = 0;
     let defenderPower = 0;
@@ -218,7 +255,7 @@ export class CombatsService implements OnModuleInit {
     for (const unitType in attackerArmy) {
       const unitCount = attackerArmy[unitType as UnitType];
       const unitStats =
-        this.configService.gameConfig.COMBAT[unitType as UnitType];
+        this.configService.gameConfig.COMBAT.UNITS[unitType as UnitType];
       attackerPower +=
         unitCount * (unitStats.ATTACK + unitStats.DEFENSE + unitStats.HEALTH);
     }
@@ -226,20 +263,20 @@ export class CombatsService implements OnModuleInit {
     for (const unitType in defenderArmy) {
       const unitCount = defenderArmy[unitType as UnitType];
       const unitStats =
-        this.configService.gameConfig.COMBAT[unitType as UnitType];
+        this.configService.gameConfig.COMBAT.UNITS[unitType as UnitType];
       defenderPower +=
         unitCount * (unitStats.ATTACK + unitStats.DEFENSE + unitStats.HEALTH);
     }
 
-    let result = '';
-    const attackerLosses: Record<UnitType, number> = {
+    let result: 'Attacker wins' | 'Defender wins';
+    const remainingAttackerArmy: Record<UnitType, number> = {
       [UnitType.SWORDSMAN]: 0,
       [UnitType.ARCHER]: 0,
       [UnitType.KNIGHT]: 0,
       [UnitType.LUCHADOR]: 0,
       [UnitType.ARCHMAGE]: 0,
     };
-    const defenderLosses: Record<UnitType, number> = {
+    const remainingDefenderArmy: Record<UnitType, number> = {
       [UnitType.SWORDSMAN]: 0,
       [UnitType.ARCHER]: 0,
       [UnitType.KNIGHT]: 0,
@@ -251,28 +288,26 @@ export class CombatsService implements OnModuleInit {
       result = 'Attacker wins';
       for (const unitType in attackerArmy) {
         const unitCount = attackerArmy[unitType as UnitType];
-        attackerLosses[unitType as UnitType] = Math.floor(
-          unitCount * (defenderPower / attackerPower),
+        remainingAttackerArmy[unitType as UnitType] = Math.floor(
+          unitCount * (1 - defenderPower / attackerPower),
         );
       }
       for (const unitType in defenderArmy) {
-        defenderLosses[unitType as UnitType] =
-          defenderArmy[unitType as UnitType]; // 100% loss for defender
+        remainingDefenderArmy[unitType as UnitType] = 0;
       }
     } else {
       result = 'Defender wins';
       for (const unitType in defenderArmy) {
         const unitCount = defenderArmy[unitType as UnitType];
-        defenderLosses[unitType as UnitType] = Math.floor(
-          unitCount * (attackerPower / defenderPower),
+        remainingDefenderArmy[unitType as UnitType] = Math.floor(
+          unitCount * (1 - attackerPower / defenderPower),
         );
       }
       for (const unitType in attackerArmy) {
-        attackerLosses[unitType as UnitType] =
-          attackerArmy[unitType as UnitType]; // 100% loss for attacker
+        remainingAttackerArmy[unitType as UnitType] = 0;
       }
     }
 
-    return { result, attackerLosses, defenderLosses };
+    return { result, remainingAttackerArmy, remainingDefenderArmy };
   }
 }
