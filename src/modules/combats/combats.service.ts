@@ -10,6 +10,7 @@ import {
 import { Job, Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
 
+import { IBattleOutcome } from '~/common/types/combats.types';
 import { sleep } from '~/common/utils';
 import { ArmyRepository } from '~/modules/armies/armies.repository';
 import { ArmiesService } from '~/modules/armies/armies.service';
@@ -96,6 +97,41 @@ export class CombatsService {
     return Math.random() < chance / 100;
   }
 
+  private async handleAttackerWin(
+    job: Job<ISiegeJob>,
+    battleOutcome: IBattleOutcome,
+  ) {
+    const garrison = await this.armyRepository.findOne({
+      where: { settlementId: job.data.defenderSettlement.id },
+    });
+    await this.armyRepository.resetUnits(garrison.id);
+    await this.settlementsService.changeSettlementOwner(
+      job.data.defenderSettlement.id,
+      job.data.attackerUserId,
+    );
+    garrison[UnitType.SWORDSMAN] =
+      battleOutcome.remainingAttackerArmy[UnitType.SWORDSMAN];
+    garrison[UnitType.ARCHER] =
+      battleOutcome.remainingAttackerArmy[UnitType.ARCHER];
+    garrison[UnitType.KNIGHT] =
+      battleOutcome.remainingAttackerArmy[UnitType.KNIGHT];
+    garrison[UnitType.LUCHADOR] =
+      battleOutcome.remainingAttackerArmy[UnitType.LUCHADOR];
+    garrison[UnitType.ARCHMAGE] =
+      battleOutcome.remainingAttackerArmy[UnitType.ARCHMAGE];
+    return this.armyRepository.save(garrison);
+  }
+
+  private async handleDefenderWin(
+    job: Job<ISiegeJob>,
+    battleOutcome: IBattleOutcome,
+  ) {
+    return this.armyRepository.update(
+      { settlementId: job.data.defenderSettlement.id },
+      battleOutcome.remainingDefenderArmy,
+    );
+  }
+
   private siegeProcessor = async (job: Job<ISiegeJob>) => {
     let breakthroughChance = 0;
     let success = false;
@@ -124,25 +160,10 @@ export class CombatsService {
           `BATTLE OF ${job.data.defenderSettlement.name} OUTCOME IS: ${battleOutcome.result}`,
         );
         if (battleOutcome.result === 'Attacker wins') {
-          const garrison = await this.armyRepository.findOne({
-            where: { settlementId: job.data.defenderSettlement.id },
-          });
-          await this.armyRepository.resetUnits(garrison.id);
-          await this.settlementsService.changeSettlementOwner(
-            job.data.defenderSettlement.id,
-            job.data.attackerUserId,
-          );
-          garrison[UnitType.SWORDSMAN] =
-            battleOutcome.remainingAttackerArmy[UnitType.SWORDSMAN];
-          garrison[UnitType.ARCHER] =
-            battleOutcome.remainingAttackerArmy[UnitType.ARCHER];
-          garrison[UnitType.KNIGHT] =
-            battleOutcome.remainingAttackerArmy[UnitType.KNIGHT];
-          garrison[UnitType.LUCHADOR] =
-            battleOutcome.remainingAttackerArmy[UnitType.LUCHADOR];
-          garrison[UnitType.ARCHMAGE] =
-            battleOutcome.remainingAttackerArmy[UnitType.ARCHMAGE];
-          await this.armyRepository.save(garrison);
+          await this.handleAttackerWin(job, battleOutcome);
+        }
+        if (battleOutcome.result === 'Defender wins') {
+          await this.handleDefenderWin(job, battleOutcome);
         }
         break;
       }
@@ -244,11 +265,7 @@ export class CombatsService {
   public calculateBattleOutcome(
     attackerArmy: Record<UnitType, number>,
     defenderArmy: Record<UnitType, number>,
-  ): {
-    result: 'Attacker wins' | 'Defender wins';
-    remainingAttackerArmy: Record<UnitType, number>;
-    remainingDefenderArmy: Record<UnitType, number>;
-  } {
+  ): IBattleOutcome {
     let attackerPower = 0;
     let defenderPower = 0;
 
