@@ -139,6 +139,7 @@ export class UserLocationService {
     latitude: number,
     radius: number,
     unit: string,
+    exceptUserId: string[] = [],
   ) {
     try {
       const results = await this.redis.georadius(
@@ -152,6 +153,7 @@ export class UserLocationService {
 
       const usersDetails = results.map(async (result) => {
         const userId = result[0];
+        if (exceptUserId.includes(userId)) return undefined; // Exclude specified users
         const coordinates = result[1];
         const isOnline = await this.usersService.getIsOnline(userId);
         if (!isOnline) return undefined;

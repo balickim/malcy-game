@@ -68,6 +68,7 @@ export class UserLocationGateway {
         payload.location.lat,
         this.configService.gameConfig.PLAYER_DISCOVER_RADIUS_METERS,
         'm',
+        [payload.userId],
       );
 
       client.emit('otherPlayersPositions', nearbyUsers);
